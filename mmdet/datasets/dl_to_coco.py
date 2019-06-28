@@ -33,9 +33,9 @@ def to_coco(csv,out_file):
         ann_info={
             'image_id':x['id'],
             'id':x['id'],
-            'area':-1,
             'iscrowd':0,
             'category_id':1,
+            'area':1,
             'bbox':box
         }
         img_infos.append(img_info)
@@ -49,7 +49,7 @@ def to_coco(csv,out_file):
         'categories':categories
     }
     
-    with open(out_file,'w') as json_file:
+    with open(out_file,'w+') as json_file:
         json.dump(dataset,json_file)
 
 

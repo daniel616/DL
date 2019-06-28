@@ -1,4 +1,7 @@
 # model settings
+import sys
+sys.path.insert(0,"../")
+from file_locs import data_dir
 model = dict(
     type='FasterRCNN',
     pretrained='modelzoo://resnet101',
@@ -99,7 +102,11 @@ test_cfg = dict(
 )
 # dataset settings
 dataset_type = 'CocoDataset'
+
+
 data_root = 'data/coco/'
+data_root = data_dir+'data/coco/'
+
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
 data = dict(
