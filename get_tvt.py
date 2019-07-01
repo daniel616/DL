@@ -20,4 +20,5 @@ def make_csvs_toy(loc=file_locs.csv_dir):
     val.to_csv(loc+"DL_valid_toy.csv")
 
 if __name__ == "__main__":
-    make_csvs_toy()
+    make_csvs()
+    #make_csvs_toy()

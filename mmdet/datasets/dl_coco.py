@@ -14,6 +14,8 @@ from .extra_aug import ExtraAugmentation
 import os.path as osp
 from skimage import io
 
+from file_locs import image_dir
+
 class DL_coco(CocoDataset):
     CLASSES = ('abnormal')
 
@@ -69,7 +71,7 @@ class DL_coco(CocoDataset):
             return data
     def prepare_train_img(self, idx):
         img_info = self.img_infos[idx]
-        np_image=io.imread(osp.join(self.img_prefix,img_info['filename'])).astype('int32')-32768
+        np_image=io.imread(osp.join(image_dir,img_info['file_name'])).astype('int32')-32768
         img=DICOM_window(np_image)
         # load proposals if necessary
         if self.proposals is not None:
@@ -162,7 +164,8 @@ class DL_coco(CocoDataset):
     def prepare_test_img(self, idx):
         """Prepare an image for testing (multi-scale and flipping)"""
         img_info = self.img_infos[idx]
-        np_image=io.imread(osp.join(self.img_prefix,img_info['filename'])).astype('int32')-32768
+
+        np_image=io.imread(osp.join(image_dir,img_info['file_name'])).astype('int32')-32768
         img=DICOM_window(np_image)
 
         if self.proposals is not None:

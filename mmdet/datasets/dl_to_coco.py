@@ -25,7 +25,7 @@ def to_coco(csv,out_file):
     for x in intermed:
         box=[ float(t) for t in x['Bounding_boxes'].split(", ")]
         img_info={
-            'file_name':x['file_name'],
+            'file_name':x['File_name'],
             'height':512,
             'width':512,
             'id':x['id']
