@@ -88,17 +88,26 @@ class BaseDetector(nn.Module):
     def show_result(self,
                     data,
                     result,
-                    img_norm_cfg,
+                    interactive=False,
+                    out_file="./test_imgs/",
+                    img_norm_cfg=None,
                     dataset=None,
                     score_thr=0.3):
         if isinstance(result, tuple):
             bbox_result, segm_result = result
         else:
             bbox_result, segm_result = result, None
-
         img_tensor = data['img'][0]
         img_metas = data['img_meta'][0].data[0]
-        imgs = tensor2imgs(img_tensor, **img_norm_cfg)
+        if img_norm_cfg is None:
+            num_imgs = img_tensor.size(0)
+            imgs = []
+            for img_id in range(num_imgs):
+                img = img_tensor[img_id, ...].cpu().numpy().transpose(1, 2, 0)
+                imgs.append(np.ascontiguousarray(img))
+            imgs=imgs
+        else:
+            imgs = tensor2imgs(img_tensor, **img_norm_cfg)
         assert len(imgs) == len(img_metas)
 
         if dataset is None:
@@ -112,9 +121,17 @@ class BaseDetector(nn.Module):
                 'dataset must be a valid dataset name or a sequence'
                 ' of class names, not {}'.format(type(dataset)))
 
-        for img, img_meta in zip(imgs, img_metas):
-            h, w, _ = img_meta['img_shape']
+        for idx,val in enumerate(zip(imgs, img_metas)):
+            img=val[0]
+            img_meta=val[1]
+            img_shape=img_meta['img_shape']
+            assert len(img_shape)==2 or len(img_shape)==3
+            if len(img_shape)==2:
+                h, w, = img_shape
+            else:
+                h, w, _ = img_shape
             img_show = img[:h, :w, :]
+            img_show=scale_255(img_show)
 
             bboxes = np.vstack(bbox_result)
             # draw segmentation masks
@@ -136,5 +153,23 @@ class BaseDetector(nn.Module):
                 img_show,
                 bboxes,
                 labels,
+                show=interactive,
+                out_file=out_file+".png",
                 class_names=class_names,
                 score_thr=score_thr)
+
+def scale_255(pic):
+    if isinstance(pic,np.ndarray):
+        min,max=np.min(pic),np.max(pic)
+        pic=255*(pic-min)/(max-min)
+        return pic.astype('uint8')
+    if isinstance(pic,torch.Tensor):
+        min,max=torch.max(pic),torch.min(pic)
+        pic=255*(pic-min)/(max-min)
+        return pic.type(torch.uint8)
+
+    raise TypeError("pic type unsupported")
+
+
+def to_numpy(tensor):
+    return tensor.cpu().detach().numpy()

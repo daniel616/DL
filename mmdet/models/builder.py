@@ -23,14 +23,12 @@ def _build_module(cfg, registry, default_args):
             args.setdefault(name, value)
     return obj_type(**args)
 
-
 def build(cfg, registry, default_args=None):
     if isinstance(cfg, list):
         modules = [_build_module(cfg_, registry, default_args) for cfg_ in cfg]
         return nn.Sequential(*modules)
     else:
         return _build_module(cfg, registry, default_args)
-
 
 def build_backbone(cfg):
     return build(cfg, BACKBONES)
