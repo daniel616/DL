@@ -53,7 +53,7 @@ test_cfg = dict(
     nms=dict(type='nms', iou_thr=0.5),
     max_per_img=100)
 # dataset settings
-dataset_type = 'DLLoader'
+dataset_type =  'DL_coco'
 data_root = 'data/deeplesion/'
 data = dict(
     imgs_per_gpu=2,
