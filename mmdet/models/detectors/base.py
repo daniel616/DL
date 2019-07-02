@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 
 import mmcv
 import numpy as np
+import torch
 import torch.nn as nn
 import pycocotools.mask as maskUtils
 
@@ -88,16 +89,18 @@ class BaseDetector(nn.Module):
     def show_result(self,
                     data,
                     result,
-                    interactive=False,
-                    out_file="./test_imgs/",
                     img_norm_cfg=None,
+                    out_dir="./test_imgs/",
                     dataset=None,
                     score_thr=0.3):
+
+        import ipdb;ipdb.set_trace()
         if isinstance(result, tuple):
             bbox_result, segm_result = result
         else:
             bbox_result, segm_result = result, None
         img_tensor = data['img'][0]
+        img_tensor=scale_255(img_tensor)
         img_metas = data['img_meta'][0].data[0]
         if img_norm_cfg is None:
             num_imgs = img_tensor.size(0)
@@ -153,20 +156,18 @@ class BaseDetector(nn.Module):
                 img_show,
                 bboxes,
                 labels,
-                show=interactive,
-                out_file=out_file+".png",
+                show=False,
+                out_file=out_dir+str(idx)+".png",
                 class_names=class_names,
                 score_thr=score_thr)
 
 def scale_255(pic):
     if isinstance(pic,np.ndarray):
-        min,max=np.min(pic),np.max(pic)
-        pic=255*(pic-min)/(max-min)
-        return pic.astype('uint8')
+        pic=255* pic
+        return pic
     if isinstance(pic,torch.Tensor):
-        min,max=torch.max(pic),torch.min(pic)
-        pic=255*(pic-min)/(max-min)
-        return pic.type(torch.uint8)
+        pic=255* pic
+        return pic
 
     raise TypeError("pic type unsupported")
 
