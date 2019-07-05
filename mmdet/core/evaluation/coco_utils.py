@@ -6,7 +6,7 @@ from pycocotools.cocoeval import COCOeval
 from .recall import eval_recalls
 
 
-def coco_eval(result_files, result_types, coco, max_dets=(100, 300, 1000)):
+def coco_eval(result_files, result_types, coco, max_dets=(4,100, 300, 1000)):
     for res_type in result_types:
         assert res_type in [
             'proposal', 'proposal_fast', 'bbox', 'segm', 'keypoints'
@@ -29,11 +29,12 @@ def coco_eval(result_files, result_types, coco, max_dets=(100, 300, 1000)):
         coco_dets = coco.loadRes(result_file)
         img_ids = coco.getImgIds()
         iou_type = 'bbox' if res_type == 'proposal' else res_type
+
         cocoEval = COCOeval(coco, coco_dets, iou_type)
         cocoEval.params.imgIds = img_ids
         if res_type == 'proposal':
             cocoEval.params.useCats = 0
-            cocoEval.params.maxDets = list(max_dets)
+        cocoEval.params.maxDets=list(max_dets)
         cocoEval.evaluate()
         cocoEval.accumulate()
         cocoEval.summarize()
@@ -43,6 +44,7 @@ def fast_eval_recall(results,
                      coco,
                      max_dets,
                      iou_thrs=np.arange(0.5, 0.96, 0.05)):
+    import ipdb; ipdb.set_trace()
     if mmcv.is_str(results):
         assert results.endswith('.pkl')
         results = mmcv.load(results)

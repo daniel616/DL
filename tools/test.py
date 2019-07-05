@@ -16,17 +16,19 @@ from mmdet.datasets import build_dataloader, get_dataset
 from mmdet.models import build_detector
 
 
-def single_gpu_test(model, data_loader, show=False):
+def single_gpu_test(model, data_loader, show=False, toy=True):
     model.eval()
     results = []
     dataset = data_loader.dataset
     prog_bar = mmcv.ProgressBar(len(dataset))
     for i, data in enumerate(data_loader):
+        #if toy and i>150:
+         #   break
         with torch.no_grad():
             result = model(return_loss=False, rescale=not show, **data)
         results.append(result)
 
-        if show:
+        if show and i<30:
             model.module.show_result(data, result, dataset.img_norm_cfg,out_dir="./test_imgs/"+str(i)+"/")
 
         batch_size = data['img'][0].size(0)
@@ -157,6 +159,7 @@ def main():
 
     # build the model and load checkpoint
     model = build_detector(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
+    import ipdb; ipdb.set_trace()
     checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
     # old versions did not save class info in checkpoints, this walkaround is
     # for backward compatibility
@@ -176,7 +179,6 @@ def main():
     if args.out and rank == 0:
         print('\nwriting results to {}'.format(args.out))
         mmcv.dump(outputs, args.out)
-        import ipdb; ipdb.set_trace()
         eval_types = args.eval
         if eval_types:
             print('Starting evaluate {}'.format(' and '.join(eval_types)))

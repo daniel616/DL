@@ -103,11 +103,11 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 2
+total_epochs = 12
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/retinanet_r101_fpn_1x'
 load_from = None
-resume_from = None
+resume_from = work_dir+"/latest.pth"
 workflow = [('train', 1)]

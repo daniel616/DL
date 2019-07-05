@@ -94,7 +94,6 @@ class BaseDetector(nn.Module):
                     dataset=None,
                     score_thr=0.3):
 
-        import ipdb;ipdb.set_trace()
         if isinstance(result, tuple):
             bbox_result, segm_result = result
         else:

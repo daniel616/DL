@@ -19,6 +19,18 @@ def make_csvs_toy(loc=file_locs.csv_dir):
     test.to_csv(loc+"DL_test_toy.csv")
     val.to_csv(loc+"DL_valid_toy.csv")
 
+def make_csvs_range(loc=file_locs.csv_dir,range=(0.4,0.6)):
+    df = pd.read_csv(file_locs.csv_dir + "DL_info.csv")
+    df['z'] = df.Normalized_lesion_location.apply(lambda x: float(x.split(", ")[-1]))
+    df=df[df.z>0.4]
+    df=df[df.z<0.6]
+    train, val, test = df[df.Train_Val_Test == 1], df[df.Train_Val_Test == 2], df[df.Train_Val_Test == 3]
+
+
+    train.to_csv(loc + "DL_train_body.csv")
+    test.to_csv(loc + "DL_test_body.csv")
+    val.to_csv(loc + "DL_valid_body.csv")
+
 if __name__ == "__main__":
     make_csvs()
     #make_csvs_toy()

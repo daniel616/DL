@@ -83,6 +83,8 @@ def eval_recalls(gts,
 
     all_ious = []
     for i in range(img_num):
+        #TODO: daniel hack:
+        if isinstance(proposals[i],list): proposals[i]=proposals[i][0]
         if proposals[i].ndim == 2 and proposals[i].shape[1] == 5:
             scores = proposals[i][:, 4]
             sort_idx = np.argsort(scores)[::-1]
