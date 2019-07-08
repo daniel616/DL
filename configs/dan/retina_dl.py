@@ -53,14 +53,14 @@ test_cfg = dict(
     nms=dict(type='nms', iou_thr=0.5),
     max_per_img=100)
 # dataset settings
-dataset_type = 'DL_coco'
+dataset_type =  'DL_coco'
 data_root = 'data/deeplesion/'
 data = dict(
     imgs_per_gpu=2,
-    workers_per_gpu=1,
+    workers_per_gpu=2,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_train_toy.csv',
+        ann_file=data_root + 'DL_train_body.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
@@ -68,7 +68,7 @@ data = dict(
         with_label=True),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_val_toy.csv',
+        ann_file=data_root + 'DL_val_body.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
@@ -81,7 +81,7 @@ data = dict(
         img_scale=(512,512),
         size_divisor=32,
         flip_ratio=0,
-        with_label=False,
+        with_label=True,
         test_mode=True))
 # optimizer
 optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
@@ -109,5 +109,5 @@ dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/retinanet_r101_fpn_1x'
 load_from = None
-resume_from = None
+resume_from = None#work_dir+"/latest.pth"
 workflow = [('train', 1)]
