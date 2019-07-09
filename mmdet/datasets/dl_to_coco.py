@@ -11,6 +11,7 @@ from .transforms import (ImageTransform, BboxTransform, MaskTransform,
 from .utils import to_tensor, random_scale
 from .extra_aug import ExtraAugmentation
 
+
 import pycocotools.mask as maskUtils
 import pandas as pd
 import json
@@ -23,23 +24,32 @@ def to_coco(csv,out_file):
     intermed = [v for k, v in df.to_dict(orient='index').items()]
     annotations=[]
     img_infos=[]
+    import ipdb; ipdb.set_trace()
     for x in intermed:
-        b=[ float(t) for t in x['Bounding_boxes'].split(", ")]
-        box_coco=[b[0],b[1],b[2]-b[0],b[3]-b[1]]
+        #import pdb; pdb.set_trace()
+        s_range= [int(t) for t in x['Slice_range'].split(", ")]
+        key=x['Key_slice_index']
+        adjacents=[max(key-1,s_range[0]),min(key+1,s_range[1])]
+        adjacents=[str(t) for t in adjacents]
+        directory="_".join(x['file_name'].split("_")[:-1])
+        ctx1=osp.join(directory,adjacents[0])
+        ctx2=osp.join(directory,adjacents[1])
 
         img_info={
             'file_name':x['file_name'],
+            'ctx1':ctx1,
+            'ctx2':ctx2,
             'height':512,
             'width':512,
             'id':x['id']
         }
 
-        import ipdb; ipdb.set_trace()
+        b=[ float(t) for t in x['Bounding_boxes'].split(", ")]
+        box_coco=[b[0],b[1],b[2]-b[0],b[3]-b[1]]
         segpoints=get_seg(x['Measurement_coordinates'])
         rles=maskUtils.frPyObjects(segpoints,512,512)
         rle=maskUtils.merge(rles)
         area=maskUtils.area(rle)
-
 
         ann_info={
             "segmentation":segpoints,

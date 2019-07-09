@@ -29,9 +29,11 @@ class DL_coco(CocoDataset):
                      to_rgb=True),
                  with_mask=False,
                  with_crowd=False,
+                 use_context=False,
                  **kwargs):
         ftype = ann_file.split(".")[-1]
         assert ftype == 'csv' or ftype == 'json'
+        self.use_context=use_context
 
         if ftype == 'json':
             super(DL_coco, self).__init__(ann_file,img_prefix,img_scale,img_norm_cfg,
@@ -69,10 +71,10 @@ class DL_coco(CocoDataset):
                 idx = self._rand_another(idx)
                 continue
             return data
+
     def prepare_train_img(self, idx):
-        img_info = self.img_infos[idx]
-        np_image=io.imread(osp.join(image_dir,img_info['file_name'])).astype('int32')-32768
-        img=DICOM_window(np_image)
+        img=self.get_img(idx)
+        img_info=self.img_infos[idx]
         # load proposals if necessary
         if self.proposals is not None:
             proposals = self.proposals[idx][:self.num_max_proposals]
@@ -163,10 +165,8 @@ class DL_coco(CocoDataset):
 
     def prepare_test_img(self, idx):
         """Prepare an image for testing (multi-scale and flipping)"""
-        img_info = self.img_infos[idx]
-
-        np_image=io.imread(osp.join(image_dir,img_info['file_name'])).astype('int32')-32768
-        img=DICOM_window(np_image)
+        img=self.get_img(idx)
+        img_info=self.img_infos[idx]
 
         if self.proposals is not None:
             proposal = self.proposals[idx][:self.num_max_proposals]
@@ -221,6 +221,17 @@ class DL_coco(CocoDataset):
         if self.proposals is not None:
             data['proposals'] = proposals
         return data
+
+    def get_img(self,idx):
+        img_info = self.img_infos[idx]
+        readim=lambda x:io.imread(osp.join(image_dir,x)).astype('int32')-32768
+        img=readim(img_info['file_name'])
+        if self.use_context:
+            ctx1,ctx2=readim(img_info['ctx1']),readim(img_info['ctx2'])
+            img=np.stack([img,ctx1,ctx2])
+        img=DICOM_window(img)
+        return img
+
 
 def _conv(x):
     parts = x.split("_")

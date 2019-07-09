@@ -159,7 +159,6 @@ def main():
 
     # build the model and load checkpoint
     model = build_detector(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
-    import ipdb; ipdb.set_trace()
     checkpoint = load_checkpoint(model, args.checkpoint, map_location='cpu')
     # old versions did not save class info in checkpoints, this walkaround is
     # for backward compatibility
