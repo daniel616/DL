@@ -30,6 +30,8 @@ def coco_eval(result_files, result_types, coco, max_dets=(4,100, 300, 1000)):
         img_ids = coco.getImgIds()
         iou_type = 'bbox' if res_type == 'proposal' else res_type
 
+        FROC_eval(coco,coco_dets)
+        '''
         cocoEval = COCOeval(coco, coco_dets, iou_type)
         cocoEval.params.imgIds = img_ids
         if res_type == 'proposal':
@@ -38,13 +40,63 @@ def coco_eval(result_files, result_types, coco, max_dets=(4,100, 300, 1000)):
         cocoEval.evaluate()
         cocoEval.accumulate()
         cocoEval.summarize()
+        '''
+
+def FROC_eval(coco, coco_dets):
+    n_imgs=len(coco.getImgIds())
+    ret=[]
+    for p_thrs in np.arange(0.0,1.0,0.05):
+        t_positives=0
+        f_positives=0
+        for img_id in coco.getImgIds():
+            gt_ann=coco.imgToAnns[img_id][0]
+            assert len(coco.imgToAnns[img_id])==1, "DL only has one ann per image"
+            gt_box=gt_ann['bbox']
+            dt_boxes=[ann['bbox'] for ann in coco_dets.imgToAnns[img_id]
+                      if ann['score']>=p_thrs]
+
+            if len(dt_boxes)==0:
+                continue
+            ious=[IOU(gt_box,box) for box in dt_boxes]
+            successes=max([int(val>=0.5) for val in ious])
+            fails=sum([val<0.5 for val in ious])
+
+            t_positives+=successes
+            f_positives+= fails
+
+        tps, fps=t_positives/n_imgs,f_positives/n_imgs
+        ret.append((fps,tps))
+
+    print(ret)
+
+
+def IOU(gts,box1):
+	# compute overlaps
+	# intersection
+	ixmin = max(gts[0], box1[0])
+	iymin = max(gts[1], box1[1])
+	ixmax = max(gts[2], box1[2])
+	iymax = max(gts[3], box1[3])
+	iw = max(ixmax - ixmin + 1., 0.)
+	ih = max(iymax - iymin + 1., 0.)
+	inters = iw * ih
+
+	# union
+	uni = ((box1[2] - box1[0] + 1.) * (box1[3] - box1[1] + 1.) +
+	       (gts[ 2] - gts[0] + 1.) *
+	       (gts[3] - gts[ 1] + 1.) - inters)
+
+	overlaps = inters / uni
+	# ovmax = np.max(overlaps)
+	# jmax = np.argmax(overlaps)
+	return overlaps
 
 
 def fast_eval_recall(results,
                      coco,
                      max_dets,
                      iou_thrs=np.arange(0.5, 0.96, 0.05)):
-    import ipdb; ipdb.set_trace()
+
     if mmcv.is_str(results):
         assert results.endswith('.pkl')
         results = mmcv.load(results)

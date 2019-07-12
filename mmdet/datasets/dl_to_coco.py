@@ -24,14 +24,13 @@ def to_coco(csv,out_file):
     intermed = [v for k, v in df.to_dict(orient='index').items()]
     annotations=[]
     img_infos=[]
-    import ipdb; ipdb.set_trace()
     for x in intermed:
-        #import pdb; pdb.set_trace()
         s_range= [int(t) for t in x['Slice_range'].split(", ")]
         key=x['Key_slice_index']
         adjacents=[max(key-1,s_range[0]),min(key+1,s_range[1])]
-        adjacents=[str(t) for t in adjacents]
-        directory="_".join(x['file_name'].split("_")[:-1])
+        adjacents=[pad(t) for t in adjacents]
+
+        directory=x['file_name'].split("/")[0]
         ctx1=osp.join(directory,adjacents[0])
         ctx2=osp.join(directory,adjacents[1])
 
@@ -73,6 +72,14 @@ def to_coco(csv,out_file):
     
     with open(out_file,'w+') as json_file:
         json.dump(dataset,json_file)
+
+def pad(v):
+    assert isinstance(v,int)
+    if v<10:
+        return "00"+str(v)+".png"
+    if v<100:
+        return "0"+str(v)+".png"
+    return str(v)+".png"
 
 def get_seg(st):
     v = [float(x) for x in st.split(", ")]

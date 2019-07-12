@@ -211,7 +211,8 @@ data = dict(
         flip_ratio=0.5,
         with_mask=True,
         with_crowd=True,
-        with_label=True),
+        with_label=True,
+        use_context=True),
     val=dict(
         type=dataset_type,
         ann_file=data_root + 'DL_val.csv',
@@ -222,7 +223,8 @@ data = dict(
         flip_ratio=0,
         with_mask=True,
         with_crowd=True,
-        with_label=True),
+        with_label=True,
+        use_context=True),
     test=dict(
         type=dataset_type,
         ann_file=data_root + 'DL_test.csv',
@@ -233,7 +235,8 @@ data = dict(
         flip_ratio=0,
         with_mask=True,
         with_label=False,
-        test_mode=True))
+        test_mode=True,
+        use_context=True))
 # optimizer
 optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))

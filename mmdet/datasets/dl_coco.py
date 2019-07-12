@@ -18,6 +18,8 @@ from file_locs import image_dir
 
 class DL_coco(CocoDataset):
     CLASSES = ('abnormal')
+    #CLASSES=['bleh' for x in range(81)]
+    #CLASSES[0]='abnormal'
 
     def __init__(self,
                  ann_file,
@@ -112,6 +114,7 @@ class DL_coco(CocoDataset):
         flip = True if np.random.rand() < self.flip_ratio else False
         # randomly sample a scale
         img_scale = random_scale(self.img_scales, self.multiscale_mode)
+
         img, img_shape, pad_shape, scale_factor = self.img_transform(
             img, img_scale, flip, keep_ratio=self.resize_keep_ratio)
         img = img.copy()
@@ -160,6 +163,7 @@ class DL_coco(CocoDataset):
             data['gt_masks'] = DC(gt_masks, cpu_only=True)
         if self.with_seg:
             data['gt_semantic_seg'] = DC(to_tensor(gt_seg), stack=True)
+
         return data
 
 
@@ -228,7 +232,7 @@ class DL_coco(CocoDataset):
         img=readim(img_info['file_name'])
         if self.use_context:
             ctx1,ctx2=readim(img_info['ctx1']),readim(img_info['ctx2'])
-            img=np.stack([img,ctx1,ctx2])
+            img=np.stack([img,ctx1,ctx2],axis=-1)
         img=DICOM_window(img)
         return img
 

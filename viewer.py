@@ -5,6 +5,10 @@ from mmdet.datasets import DL_coco
 from mmcv.parallel.data_container import DataContainer
 from PIL import Image, ImageStat, ImageDraw
 import torch
+from mmcv import Config
+from mmdet.models import build_detector
+from mmcv.parallel import MMDataParallel
+
 def view_dataset(gen,max_imgs=30):
     max_imgs=min(max_imgs,len(gen))
     for i in range(max_imgs):
@@ -29,13 +33,13 @@ def view_dataset(gen,max_imgs=30):
         draw.rectangle(((pts[0],pts[1]),(pts[2],pts[3])))
 
         if 'gt_masks' in data:
-            import pdb; pdb.set_trace()
             mask=un(data['gt_masks']).reshape(512,512)
-            mask=np.zeros((512,512),np.uint8)
+            mask=mask*64
+            #mask=np.zeros((512,512),np.uint8)
             #import pdb; pdb.set_trace()
-            mask[:,:]=1
-            mask=Image.fromarray(mask,mode='1')
-            overlay=Image.new('RGB',img.size,color='WHITE')
+            #mask[:,:]=1
+            mask=Image.fromarray(mask)
+            overlay=Image.new(mode='RGB',size=img.size,color='RED')
             img.paste(overlay,(0,0),mask=mask)
             #draw.bitmap((0,0),mask,fill='WHITE')
             #img.paste(overlay,mask=mask)
@@ -65,5 +69,14 @@ def tonumpy(val):
         return val
 
 if __name__ == "__main__":
-    gen=DL_coco(file_locs.csv_dir+"DL_test_toy.csv",file_locs.image_dir,with_mask=True)
-    view_dataset(gen)
+    gen=DL_coco(file_locs.csv_dir+"DL_test_toy.csv",file_locs.image_dir,
+                with_mask=True,use_context=True)
+
+
+    import configs.dan.retina_dl as cfg
+    model = build_detector(cfg.model, train_cfg = cfg.train_cfg, test_cfg = cfg.test_cfg)
+    dmodel=MMDataParallel(model)
+
+    #view_dataset(gen)
+    data=gen[0]
+    model.simple_test(img=data['img'].data.reshape(1, 3, 512, 512).cuda(), img_meta=data['img_meta'].data)

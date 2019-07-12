@@ -16,7 +16,7 @@ from mmdet.datasets import build_dataloader, get_dataset
 from mmdet.models import build_detector
 
 
-def single_gpu_test(model, data_loader, show=False, toy=True):
+def single_gpu_test(model, data_loader, show=False):
     model.eval()
     results = []
     dataset = data_loader.dataset
