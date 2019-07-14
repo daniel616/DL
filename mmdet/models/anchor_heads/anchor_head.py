@@ -230,11 +230,13 @@ class AnchorHead(nn.Module):
         assert len(cls_scores) == len(bbox_preds) == len(mlvl_anchors)
         mlvl_bboxes = []
         mlvl_scores = []
+        import pdb; pdb.set_trace()
         for cls_score, bbox_pred, anchors in zip(cls_scores, bbox_preds,
                                                  mlvl_anchors):
             assert cls_score.size()[-2:] == bbox_pred.size()[-2:]
             cls_score = cls_score.permute(1, 2,
                                           0).reshape(-1, self.cls_out_channels)
+
             if self.use_sigmoid_cls:
                 scores = cls_score.sigmoid()
             else:

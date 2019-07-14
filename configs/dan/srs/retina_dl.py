@@ -60,7 +60,7 @@ data = dict(
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_train_body.csv',
+        ann_file=data_root + 'DL_train.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
@@ -68,7 +68,7 @@ data = dict(
         with_label=True),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_val_body.csv',
+        ann_file=data_root + 'DL_val.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
@@ -76,7 +76,7 @@ data = dict(
         with_label=True),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_test_body.csv',
+        ann_file=data_root + 'DL_test.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512,512),
         size_divisor=32,
@@ -103,7 +103,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 24
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'

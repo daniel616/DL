@@ -196,6 +196,7 @@ class CustomDataset(Dataset):
                 scores = None
 
         ann = self.get_ann_info(idx)
+        import pdb; pdb.set_trace()
         gt_bboxes = ann['bboxes']
         gt_labels = ann['labels']
         if self.with_crowd:
@@ -247,7 +248,6 @@ class CustomDataset(Dataset):
             pad_shape=pad_shape,
             scale_factor=scale_factor,
             flip=flip)
-
         data = dict(
             img=DC(to_tensor(img), stack=True),
             img_meta=DC(img_meta, cpu_only=True),

@@ -60,7 +60,7 @@ data = dict(
     workers_per_gpu=0,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_train_body.csv',
+        ann_file=data_root + 'DL_train_toy.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
@@ -68,7 +68,7 @@ data = dict(
         with_label=True),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_val_body.csv',
+        ann_file=data_root + 'DL_val_toy.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
@@ -81,7 +81,7 @@ data = dict(
         img_scale=(512,512),
         size_divisor=32,
         flip_ratio=0,
-        with_label=True,
+        with_label=False,
         test_mode=True))
 # optimizer
 optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)

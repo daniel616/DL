@@ -12,5 +12,5 @@
 
 
 #module load Python-GPU/3.6.7
-python tools/test.py $1 $2 --out heh.pkl --eval bbox --show
+python tools/test.py $1 $2 --show
 
