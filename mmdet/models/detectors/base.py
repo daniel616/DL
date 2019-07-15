@@ -92,8 +92,8 @@ class BaseDetector(nn.Module):
                     img_norm_cfg=None,
                     out_dir="./test_imgs/",
                     dataset=None,
-                    score_thr=0.3):
-
+                    score_thr=0.01):
+        import pdb; pdb.set_trace()
         if isinstance(result, tuple):
             bbox_result, segm_result = result
         else:

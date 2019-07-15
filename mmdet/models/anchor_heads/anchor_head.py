@@ -27,14 +27,14 @@ class AnchorHead(nn.Module):
         loss_cls (dict): Config of classification loss.
         loss_bbox (dict): Config of localization loss.
     """  # noqa: W605
-
+#h
     def __init__(self,
                  num_classes,
                  in_channels,
                  feat_channels=256,
                  anchor_scales=[8, 16, 32],
                  anchor_ratios=[0.5, 1.0, 2.0],
-                 anchor_strides=[4, 8, 16, 32, 64],
+                 anchor_strides=[4,8,16,32,64],
                  anchor_base_sizes=None,
                  target_means=(.0, .0, .0, .0),
                  target_stds=(1.0, 1.0, 1.0, 1.0),
@@ -96,13 +96,13 @@ class AnchorHead(nn.Module):
         Args:
             featmap_sizes (list[tuple]): Multi-level feature map sizes.
             img_metas (list[dict]): Image meta info.
-
+#rqwerfwef
         Returns:
             tuple: anchors of each image, valid flags of each image
         """
         num_imgs = len(img_metas)
         num_levels = len(featmap_sizes)
-
+#HI
         # since feature map sizes of all images are the same, we only compute
         # anchors for one time
         multi_level_anchors = []

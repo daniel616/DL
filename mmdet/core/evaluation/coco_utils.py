@@ -46,7 +46,7 @@ def coco_eval(result_files, result_types, coco, max_dets=(4, 100, 300, 1000)):
 def FROC_eval(coco, coco_dets):
     n_imgs = len(coco.getImgIds())
     ret = []
-    for p_thrs in np.arange(0.0, 1.0, 0.05):
+    for p_thrs in np.arange(0.0, 0.5, 0.0025):
         t_positives = 0
         f_positives = 0
         for img_id in coco.getImgIds():

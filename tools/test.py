@@ -17,6 +17,7 @@ from mmdet.models import build_detector
 
 
 def single_gpu_test(model, data_loader, show=False):
+    print('HI! WET')
     model.eval()
     results = []
     dataset = data_loader.dataset
@@ -58,7 +59,7 @@ def multi_gpu_test(model, data_loader, tmpdir=None):
     results = collect_results(results, len(dataset), tmpdir)
 
     return results
-
+#REEE
 
 def collect_results(result_part, size, tmpdir=None):
     rank, world_size = get_dist_info()

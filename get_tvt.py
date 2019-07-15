@@ -26,11 +26,11 @@ def make_csvs_range(loc=file_locs.csv_dir,range=(0.4,0.6)):
     df=df[df.z<range[1]]
     train, val, test = df[df.Train_Val_Test == 1], df[df.Train_Val_Test == 2], df[df.Train_Val_Test == 3]
 
-
+#WQERQWER
     train.to_csv(loc + "DL_train_body.csv")
     test.to_csv(loc + "DL_test_body.csv")
     val.to_csv(loc + "DL_valid_body.csv")
-
+#HIIISDF
 if __name__ == "__main__":
     make_csvs_range()
     #make_csvs_toy()
