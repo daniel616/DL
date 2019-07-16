@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -e err-%A.txt
-#SBATCH -p dsplus-gpu --gres=gpu:1
+#SBATCH -p gpu-common --gres=gpu:1
 #SBATCH --mem=16G
 #SBATCH -c 10
 #SBATCH -o results-%A.txt

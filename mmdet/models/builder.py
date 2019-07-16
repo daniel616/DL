@@ -5,8 +5,9 @@ from .registry import (BACKBONES, NECKS, ROI_EXTRACTORS, SHARED_HEADS, HEADS,
                        LOSSES, DETECTORS)
 
 
-<<<<<<< HEAD
+'''
 def _build_module(cfg, registry, default_args):
+    
     assert isinstance(cfg, dict) and 'type' in cfg
     assert isinstance(default_args, dict) or default_args is None
     args = cfg.copy()
@@ -23,9 +24,8 @@ def _build_module(cfg, registry, default_args):
         for name, value in default_args.items():
             args.setdefault(name, value)
     return obj_type(**args)
+'''
 
-=======
->>>>>>> 5b9c5dd45fc5446a1c2f6c1fce571ad504e4d9ce
 def build(cfg, registry, default_args=None):
     if isinstance(cfg, list):
         modules = [

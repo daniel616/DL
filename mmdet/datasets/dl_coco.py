@@ -16,6 +16,9 @@ from skimage import io
 
 from file_locs import image_dir
 
+from .registry import DATASETS
+
+@DATASETS.register_module
 class DL_coco(CocoDataset):
     CLASSES = ('abnormal')
     #CLASSES=['bleh' for x in range(81)]

@@ -82,7 +82,7 @@ data = dict(
         img_scale=(512,512),
         size_divisor=32,
         flip_ratio=0,
-        with_label=False,
+        with_label=True,
         test_mode=True))
 # optimizer
 optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
