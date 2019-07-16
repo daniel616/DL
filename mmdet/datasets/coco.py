@@ -2,8 +2,10 @@ import numpy as np
 from pycocotools.coco import COCO
 
 from .custom import CustomDataset
-import json
 
+from .registry import DATASETS
+
+@DATASETS.register_module
 class CocoDataset(CustomDataset):
 
     CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',

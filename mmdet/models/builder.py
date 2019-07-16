@@ -1,10 +1,11 @@
-import mmcv
 from torch import nn
 
+from mmdet.utils import build_from_cfg
 from .registry import (BACKBONES, NECKS, ROI_EXTRACTORS, SHARED_HEADS, HEADS,
                        LOSSES, DETECTORS)
 
 
+<<<<<<< HEAD
 def _build_module(cfg, registry, default_args):
     assert isinstance(cfg, dict) and 'type' in cfg
     assert isinstance(default_args, dict) or default_args is None
@@ -23,12 +24,16 @@ def _build_module(cfg, registry, default_args):
             args.setdefault(name, value)
     return obj_type(**args)
 
+=======
+>>>>>>> 5b9c5dd45fc5446a1c2f6c1fce571ad504e4d9ce
 def build(cfg, registry, default_args=None):
     if isinstance(cfg, list):
-        modules = [_build_module(cfg_, registry, default_args) for cfg_ in cfg]
+        modules = [
+            build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg
+        ]
         return nn.Sequential(*modules)
     else:
-        return _build_module(cfg, registry, default_args)
+        return build_from_cfg(cfg, registry, default_args)
 
 def build_backbone(cfg):
     return build(cfg, BACKBONES)
