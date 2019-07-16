@@ -12,5 +12,5 @@
 
 
 #module load Python-GPU/3.6.7
-python tools/train.py $1 --resume_from #work_dirs/retinanet_r101_fpn_1x/epoch_12.pth
-
+#python tools/train.py $1 #--resume_from #work_dirs/retinanet_r101_fpn_1x/epoch_12.pth
+python tools/train.py configs/dan/srs/cascade_rcnn_r101_fpn_1x.py --resume_from work_dirs/cascade_rcnn_r101_fpn_1x/latest.pth

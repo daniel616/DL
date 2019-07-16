@@ -1,5 +1,5 @@
 # model settings
-input_size = 300
+input_size = 512
 model = dict(
     type='SingleStageDetector',
     pretrained='open-mmlab://vgg16_caffe',
@@ -17,7 +17,7 @@ model = dict(
         type='SSDHead',
         input_size=input_size,
         in_channels=(512, 1024, 512, 256, 256, 256),
-        num_classes=81,
+        num_classes=2,
         anchor_strides=(8, 16, 32, 64, 100, 300),
         basesize_ratio_range=(0.15, 0.9),
         anchor_ratios=([2], [2, 3], [2, 3], [2, 3], [2], [2]),
@@ -44,64 +44,38 @@ test_cfg = dict(
     max_per_img=200)
 # model training and testing settings
 # dataset settings
-dataset_type = 'CocoDataset'
-data_root = 'data/coco/'
-img_norm_cfg = dict(mean=[123.675, 116.28, 103.53], std=[1, 1, 1], to_rgb=True)
+
+# dataset settings
+dataset_type =  'DL_coco'
+data_root = 'data/deeplesion/'
 data = dict(
-    imgs_per_gpu=8,
-    workers_per_gpu=3,
+    imgs_per_gpu=2,
+    workers_per_gpu=0,
     train=dict(
-        type='RepeatDataset',
-        times=5,
-        dataset=dict(
-            type=dataset_type,
-            ann_file=data_root + 'annotations/instances_val2017.json',
-            img_prefix=data_root + 'val2017/',
-            img_scale=(300, 300),
-            img_norm_cfg=img_norm_cfg,
-            size_divisor=None,
-            flip_ratio=0.5,
-            with_mask=False,
-            with_crowd=False,
-            with_label=True,
-            test_mode=False,
-            extra_aug=dict(
-                photo_metric_distortion=dict(
-                    brightness_delta=32,
-                    contrast_range=(0.5, 1.5),
-                    saturation_range=(0.5, 1.5),
-                    hue_delta=18),
-                expand=dict(
-                    mean=img_norm_cfg['mean'],
-                    to_rgb=img_norm_cfg['to_rgb'],
-                    ratio_range=(1, 4)),
-                random_crop=dict(
-                    min_ious=(0.1, 0.3, 0.5, 0.7, 0.9), min_crop_size=0.3)),
-            resize_keep_ratio=False)),
+        type=dataset_type,
+        ann_file=data_root + 'DL_train_toy.csv',
+        img_prefix=data_root + 'Images_png/',
+        img_scale=(512, 512),
+        size_divisor=32,
+        flip_ratio=0.5,
+        with_label=True),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_val2017.json',
-        img_prefix=data_root + 'val2017/',
-        img_scale=(300, 300),
-        img_norm_cfg=img_norm_cfg,
-        size_divisor=None,
+        ann_file=data_root + 'DL_val_toy.csv',
+        img_prefix=data_root + 'Images_png/',
+        img_scale=(512, 512),
+        size_divisor=32,
         flip_ratio=0,
-        with_mask=False,
-        with_label=False,
-        test_mode=True,
-        resize_keep_ratio=False),
+        with_label=True),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'annotations/instances_val2017.json',
-        img_prefix=data_root + 'val2017/',
-        img_scale=(300, 300),
-        img_norm_cfg=img_norm_cfg,
-        size_divisor=None,
+        ann_file=data_root + 'DL_test_toy.csv',
+        img_prefix=data_root + 'Images_png/',
+        img_scale=(512,512),
+        size_divisor=32,
         flip_ratio=0,
-        with_mask=False,
         with_label=False,
-        test_mode=True,
-        resize_keep_ratio=False))
+        test_mode=True))
 # optimizer
 optimizer = dict(type='SGD', lr=2e-3, momentum=0.9, weight_decay=5e-4)
 optimizer_config = dict()

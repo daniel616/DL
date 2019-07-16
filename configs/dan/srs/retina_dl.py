@@ -22,10 +22,9 @@ model = dict(
         in_channels=256,
         stacked_convs=4,
         feat_channels=256,
-        octave_base_scale=4,
-        scales_per_octave=3,
-        anchor_ratios=[0.5, 1.0, 2.0],
-        anchor_strides=[8, 16, 32, 64, 128],
+        anchor_scales=[0.425,0.540,0.680],
+        anchor_ratios=[3.27, 1.78,1.0, 1/1.78,1/3.27],
+        anchor_strides=[32, 64, 128,256,512],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
         loss_cls=dict(
@@ -56,7 +55,7 @@ test_cfg = dict(
 dataset_type =  'DL_coco'
 data_root = 'data/deeplesion/'
 data = dict(
-    imgs_per_gpu=2,
+    imgs_per_gpu=32,
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
@@ -76,7 +75,7 @@ data = dict(
         with_label=True),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_test.csv',
+        ann_file=data_root + 'DL_test_toy.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512,512),
         size_divisor=32,
@@ -84,7 +83,7 @@ data = dict(
         with_label=False,
         test_mode=True))
 # optimizer
-optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
