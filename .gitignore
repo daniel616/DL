@@ -111,6 +111,11 @@ data
 .idea
 
 # custom
+*.png
+*.json
+results-*.txt
+err-*.txt
+*.csv
 *.pkl
 *.pkl.json
 *.log.json
