@@ -6,6 +6,10 @@ import numpy as np
 import torch
 import torch.nn as nn
 import pycocotools.mask as maskUtils
+import cv2
+
+from mmcv.image import imread, imwrite
+from mmcv.visualization.color import color_val
 
 from mmdet.core import tensor2imgs, get_classes, auto_fp16
 
@@ -81,7 +85,7 @@ class BaseDetector(nn.Module):
         else:
             return self.aug_test(imgs, img_metas, **kwargs)
 
-    @auto_fp16(apply_to=('img', ))
+    @auto_fp16(apply_to=('img',))
     def forward(self, img, img_meta, return_loss=True, **kwargs):
         if return_loss:
             return self.forward_train(img, img_meta, **kwargs)
@@ -91,17 +95,18 @@ class BaseDetector(nn.Module):
     def show_result(self,
                     data,
                     result,
+                    out_file,
                     img_norm_cfg=None,
-                    out_dir="./test_imgs/",
                     dataset=None,
-                    score_thr=0.01):
+                    score_thr=0):
+        # asdf
         import pdb; pdb.set_trace()
         if isinstance(result, tuple):
             bbox_result, segm_result = result
         else:
             bbox_result, segm_result = result, None
         img_tensor = data['img'][0]
-        img_tensor=scale_255(img_tensor)
+        img_tensor = scale_255(img_tensor)
         img_metas = data['img_meta'][0].data[0]
         if img_norm_cfg is None:
             num_imgs = img_tensor.size(0)
@@ -109,7 +114,7 @@ class BaseDetector(nn.Module):
             for img_id in range(num_imgs):
                 img = img_tensor[img_id, ...].cpu().numpy().transpose(1, 2, 0)
                 imgs.append(np.ascontiguousarray(img))
-            imgs=imgs
+            imgs = imgs
         else:
             imgs = tensor2imgs(img_tensor, **img_norm_cfg)
         assert len(imgs) == len(img_metas)
@@ -125,17 +130,17 @@ class BaseDetector(nn.Module):
                 'dataset must be a valid dataset name or a sequence'
                 ' of class names, not {}'.format(type(dataset)))
 
-        for idx,val in enumerate(zip(imgs, img_metas)):
-            img=val[0]
-            img_meta=val[1]
-            img_shape=img_meta['img_shape']
-            assert len(img_shape)==2 or len(img_shape)==3
-            if len(img_shape)==2:
+        for idx, val in enumerate(zip(imgs, img_metas)):
+            img = val[0]
+            img_meta = val[1]
+            img_shape = img_meta['img_shape']
+            assert len(img_shape) == 2 or len(img_shape) == 3
+            if len(img_shape) == 2:
                 h, w, = img_shape
             else:
                 h, w, _ = img_shape
             img_show = img[:h, :w, :]
-            img_show=scale_255(img_show)
+            img_show = scale_255(img_show)
 
             bboxes = np.vstack(bbox_result)
             # draw segmentation masks
@@ -153,6 +158,17 @@ class BaseDetector(nn.Module):
                 for i, bbox in enumerate(bbox_result)
             ]
             labels = np.concatenate(labels)
+
+            show_det_bboxes(
+                img_show,
+                bboxes,
+                labels,
+                out_file,
+                gt_bboxes=img_meta['bbox'],
+                class_names=class_names,
+                score_thr=score_thr
+            )
+            '''
             mmcv.imshow_det_bboxes(
                 img_show,
                 bboxes,
@@ -161,13 +177,73 @@ class BaseDetector(nn.Module):
                 out_file=out_dir+str(idx)+".png",
                 class_names=class_names,
                 score_thr=score_thr)
+            '''
+
+
+def show_det_bboxes(img,
+                    bboxes,
+                    labels,
+                    out_file,
+                    gt_bboxes=None,
+                    class_names=None,
+                    score_thr=0,
+                    bbox_color='yellow',
+                    gt_color='green',
+                    top_k=20
+                    ):
+
+    assert bboxes.ndim == 2
+    assert labels.ndim == 1
+    assert bboxes.shape[0] == labels.shape[0]
+    assert bboxes.shape[1] == 4 or bboxes.shape[1] == 5
+    img = imread(img)
+    if score_thr > 0:
+        assert bboxes.shape[1] == 5
+        scores = bboxes[:, -1]
+        inds = scores > score_thr
+        bboxes = bboxes[inds, :]
+        labels = labels[inds]
+
+    topinds=np.argsort(bboxes[:,4])
+    topinds=topinds[:top_k] if len(topinds)>=top_k else topinds
+    bboxes=bboxes[topinds,:]
+    labels=labels[topinds]
+
+
+    bbox_color = color_val(bbox_color)
+    gt_color=color_val(gt_color)
+
+    for bbox, label in zip(bboxes, labels):
+        addBox(img,bbox,bbox_color,label,class_names=class_names)
+
+    if gt_bboxes is not None:
+        for gt_box in gt_bboxes:
+            addBox(img,gt_box,gt_color,0,class_names=class_names)
+
+    imwrite(img, out_file)
+
+def addBox(img,bbox,color,label,class_names=None):
+    bbox_int = bbox.astype(np.int32)
+    left_top = (bbox_int[0], bbox_int[1])
+    right_bottom = (bbox_int[2], bbox_int[3])
+    cv2.rectangle(
+        img, left_top, right_bottom, color, 1)
+    label_text = class_names[
+        label] if class_names is not None else 'cls {}'.format(label)
+    if len(bbox) > 4:
+        label_text += '|{:.02f}'.format(bbox[-1])
+    cv2.putText(img, label_text, (bbox_int[0], bbox_int[1] - 2),
+                cv2.FONT_HERSHEY_COMPLEX, 0.5, color)
+
+
+
 
 def scale_255(pic):
-    if isinstance(pic,np.ndarray):
-        pic=255* pic
+    if isinstance(pic, np.ndarray):
+        pic = 255 * pic
         return pic
-    if isinstance(pic,torch.Tensor):
-        pic=255* pic
+    if isinstance(pic, torch.Tensor):
+        pic = 255 * pic
         return pic
 
     raise TypeError("pic type unsupported")

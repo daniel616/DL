@@ -17,7 +17,6 @@ from mmdet.models import build_detector
 
 
 def single_gpu_test(model, data_loader, show=False):
-    print('HI! WET')
     model.eval()
     results = []
     dataset = data_loader.dataset
@@ -29,8 +28,9 @@ def single_gpu_test(model, data_loader, show=False):
             result = model(return_loss=False, rescale=not show, **data)
         results.append(result)
 
-        if show and i<30:
-            model.module.show_result(data, result, dataset.img_norm_cfg,out_dir="./test_imgs/"+str(i)+"/")
+        if show and i<150:
+            model.module.show_result(data, result, img_norm_cfg=dataset.img_norm_cfg,
+                                     out_file="./test_imgs/"+str(i)+".png")
 
         batch_size = data['img'][0].size(0)
         for _ in range(batch_size):

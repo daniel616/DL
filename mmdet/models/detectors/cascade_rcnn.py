@@ -375,5 +375,5 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
         else:
             if isinstance(result, dict):
                 result = result['ensemble']
-        super(CascadeRCNN, self).show_result(data, result, img_norm_cfg,
+        super(CascadeRCNN, self).show_result(data, result,
                                              **kwargs)

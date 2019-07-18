@@ -27,11 +27,13 @@ def coco_eval(result_files, result_types, coco, max_dets=(4, 100, 300, 1000)):
         assert result_file.endswith('.json')
 
         coco_dets = coco.loadRes(result_file)
-        img_ids = coco.getImgIds()
-        iou_type = 'bbox' if res_type == 'proposal' else res_type
+
 
         FROC_eval(coco, coco_dets)
-        '''
+
+
+        img_ids = coco.getImgIds()
+        iou_type = 'bbox' if res_type == 'proposal' else res_type
         cocoEval = COCOeval(coco, coco_dets, iou_type)
         cocoEval.params.imgIds = img_ids
         if res_type == 'proposal':
@@ -40,12 +42,16 @@ def coco_eval(result_files, result_types, coco, max_dets=(4, 100, 300, 1000)):
         cocoEval.evaluate()
         cocoEval.accumulate()
         cocoEval.summarize()
-        '''
+
 
 
 def FROC_eval(coco, coco_dets):
     n_imgs = len(coco.getImgIds())
     ret = []
+
+
+
+
     for p_thrs in np.arange(0.0, 0.5, 0.0025):
         t_positives = 0
         f_positives = 0
@@ -57,7 +63,6 @@ def FROC_eval(coco, coco_dets):
 
             if len(dt_boxes) == 0:
                 continue
-           
             ious = [IOU(gt_box, box) for box in dt_boxes]
             successes = max([int(val >= 0.5) for val in ious])
             fails = sum([val < 0.5 for val in ious])
@@ -78,8 +83,8 @@ def IOU(gt_box, det_box):
     box1 = [det_box[0], det_box[1], det_box[0] + det_box[2], det_box[1] + det_box[3]]
     ixmin = max(gts[0], box1[0])
     iymin = max(gts[1], box1[1])
-    ixmax = max(gts[2], box1[2])
-    iymax = max(gts[3], box1[3])
+    ixmax = min(gts[2], box1[2])
+    iymax = min(gts[3], box1[3])
     iw = max(ixmax - ixmin + 1., 0.)
     ih = max(iymax - iymin + 1., 0.)
     inters = iw * ih

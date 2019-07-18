@@ -19,6 +19,7 @@ import json
 
 def to_coco(csv,out_file):
     df= pd.read_csv(csv)
+    df=df[df['Possibly_noisy']==0]
     df['id']=df.index
     df['file_name']=df.File_name.apply(_conv)
     intermed = [v for k, v in df.to_dict(orient='index').items()]

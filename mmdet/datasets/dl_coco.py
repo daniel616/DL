@@ -5,12 +5,8 @@ import numpy as np
 import torch
 
 from mmcv.parallel import DataContainer as DC
-from torch.utils.data import Dataset
 
-from .transforms import (ImageTransform, BboxTransform, MaskTransform,
-                         SegMapTransform, Numpy2Tensor)
 from .utils import to_tensor, random_scale
-from .extra_aug import ExtraAugmentation
 import os.path as osp
 from skimage import io
 
@@ -78,6 +74,7 @@ class DL_coco(CocoDataset):
             return data
 
     def prepare_train_img(self, idx):
+        import pdb; pdb.set_trace()
         img=self.get_img(idx)
         img_info=self.img_infos[idx]
         # load proposals if necessary
@@ -150,7 +147,8 @@ class DL_coco(CocoDataset):
             img_shape=img_shape,
             pad_shape=pad_shape,
             scale_factor=scale_factor,
-            flip=flip)
+            flip=flip,
+            )
 
         data = dict(
             img=DC(to_tensor(img), stack=True),
@@ -166,6 +164,9 @@ class DL_coco(CocoDataset):
             data['gt_masks'] = DC(gt_masks, cpu_only=True)
         if self.with_seg:
             data['gt_semantic_seg'] = DC(to_tensor(gt_seg), stack=True)
+
+
+        data['file_name']=self.img_infos[idx]['file_name']
 
         return data
 
@@ -183,6 +184,8 @@ class DL_coco(CocoDataset):
                     'but found {}'.format(proposal.shape))
         else:
             proposal = None
+
+
 
         def prepare_single(img, scale, flip, proposal=None):
             _img, img_shape, pad_shape, scale_factor = self.img_transform(
@@ -212,9 +215,13 @@ class DL_coco(CocoDataset):
         imgs = []
         img_metas = []
         proposals = []
+
         for scale in self.img_scales:
             _img, _img_meta, _proposal = prepare_single(
                 img, scale, False, proposal)
+            #TODO: THIS IS NOT ROBUST TO AUGMENTATIONS
+
+
             imgs.append(_img)
             img_metas.append(DC(_img_meta, cpu_only=True))
             proposals.append(_proposal)
@@ -224,9 +231,14 @@ class DL_coco(CocoDataset):
                 imgs.append(_img)
                 img_metas.append(DC(_img_meta, cpu_only=True))
                 proposals.append(_proposal)
-        data = dict(img=imgs, img_meta=img_metas)
+
+        ann=self.get_ann_info(idx)
+        gt_bboxes=ann['bboxes']
+        data = dict(img=imgs, img_meta=img_metas,gt_bboxes=gt_bboxes)
         if self.proposals is not None:
             data['proposals'] = proposals
+
+        data['file_name']=self.img_infos[idx]['file_name']
         return data
 
     def get_img(self,idx):
@@ -245,7 +257,7 @@ def _conv(x):
     pre = "_".join(parts[:-1])
     return osp.join(pre, parts[-1])
 
-def DICOM_window(x,min_w=-1024,max_w=1023):
+def DICOM_window(x,min_w=-275,max_w=175):
     x=np.clip(x,a_min=min_w,a_max=max_w)
     x=(x-min_w)/(max_w-min_w)
     return x

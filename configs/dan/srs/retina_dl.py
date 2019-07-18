@@ -55,7 +55,7 @@ test_cfg = dict(
 dataset_type =  'DL_coco'
 data_root = 'data/deeplesion/'
 data = dict(
-    imgs_per_gpu=32,
+    imgs_per_gpu=16,
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
@@ -83,7 +83,7 @@ data = dict(
         with_label=False,
         test_mode=True))
 # optimizer
-optimizer = dict(type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(

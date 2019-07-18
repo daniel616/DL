@@ -1,65 +1,61 @@
-import cv2
 import file_locs
 import numpy as np
 from mmdet.datasets import DL_coco
 from mmcv.parallel.data_container import DataContainer
 from PIL import Image, ImageStat, ImageDraw
 import torch
-from mmcv import Config
 from mmdet.models import build_detector
 from mmcv.parallel import MMDataParallel
 
-def view_dataset(gen,max_imgs=30):
+def view_dataset(gen,max_imgs=150):
     max_imgs=min(max_imgs,len(gen))
     for i in range(max_imgs):
         data=gen[i]
-        img=un(data['img'])
+        img=data['img'][0]
         img=tonumpy(img)
-        img=(img*255).astype(np.uint8)
 
-        if len(img.shape)==3:
-            img=img[0]
-        assert len(img.shape)==2
-        img=np.tile(img,(3,1,1))
-        img=np.transpose(img,[1,2,0])
+        gt_bboxes=data['gt_bboxes']
 
+        view_image(img,gt_bboxes,"markings/"+str(i)+".png",text=data['file_name'])
 
-        img=Image.fromarray(img).convert('RGB')
+def view_image(img,gt_bboxes,out_file, dt_bboxes=None,gt_mask=None,text=None):
+    if img.max()<=1:
+        img=(img*255)
+    img=img.astype(np.uint8)
+    assert len(img.shape)==3
 
-        draw=ImageDraw.Draw(img)
-        pts=[int(x) for x in un(data['gt_bboxes'])[0]]
+    for idx in range(img.shape[0]):
+        if idx>0: continue
+        slice=img[idx]
+        slice=np.tile(slice,(3,1,1))
+        slice=np.transpose(slice,[1,2,0])
+        slice=Image.fromarray(slice).convert('RGB')
+        draw=ImageDraw.Draw(slice)
 
-        #import pdb; pdb.set_trace()
-        draw.rectangle(((pts[0],pts[1]),(pts[2],pts[3])))
+        gt_bboxes=[[int(t) for t in x] for x in gt_bboxes]
+        for box in gt_bboxes:
+            draw.rectangle(((box[0],box[1]),(box[2],box[3])), outline='green')
 
-        if 'gt_masks' in data:
-            mask=un(data['gt_masks']).reshape(512,512)
+        if dt_bboxes is not None:
+            dt_bboxes=[[int(t) for t in x] for x in dt_bboxes]
+            for box in dt_bboxes:
+                draw.rectangle(((box[0],box[1]),(box[2],box[3])),
+                               outline='yellow')
+
+        if text is not None:
+            draw.text((250,10),text)
+
+        if gt_mask is not None:
+            assert False,"not implemented yet"
             mask=mask*64
-            #mask=np.zeros((512,512),np.uint8)
-            #import pdb; pdb.set_trace()
-            #mask[:,:]=1
             mask=Image.fromarray(mask)
             overlay=Image.new(mode='RGB',size=img.size,color='RED')
-            img.paste(overlay,(0,0),mask=mask)
-            #draw.bitmap((0,0),mask,fill='WHITE')
-            #img.paste(overlay,mask=mask)
-            #draw.bitmap((0,0),mask,fill=(255, 255, 255, 255))
-            #mask=np.tile(mask,(3,1,1))
-            #mask=np.transpose(mask,[1,2,0])
-            #img=cv2.addWeighted(img,0.4,mask,128,0)
-        img.save("markings/"+str(i)+".png")
-
-def polypoints(arr):
-    pts=[[arr[i],arr[i]+1] for i in range(0,len(arr),2)]
-    pts=np.array(pts,np.int32)
-    pts=pts.reshape(-1,1,2)
-    return pts
+            slice.paste(overlay,(0,0),mask=mask)
+        slice.save(out_file)
 
 def un(val):
-    if isinstance(val,DataContainer):
-        return val._data
-    else:
-        return val
+    assert isinstance(val,DataContainer), "not DataContainer"
+    return val.data
 
 def tonumpy(val):
     if isinstance(val,torch.Tensor):
@@ -69,14 +65,20 @@ def tonumpy(val):
         return val
 
 if __name__ == "__main__":
-    gen=DL_coco(file_locs.csv_dir+"DL_test_toy.csv",file_locs.image_dir,
-                with_mask=True,use_context=True)
+    train=DL_coco(file_locs.csv_dir+"DL_train_toy.csv",file_locs.image_dir,
+                with_mask=True,use_context=True,test_mode=False)
+    test=DL_coco(file_locs.csv_dir+"DL_test.csv",file_locs.image_dir,
+                with_mask=True,use_context=True,test_mode=True)
 
+    import pandas as pd
+    df= pd.read_csv(file_locs.csv_dir+"DL_test.csv")
 
     import configs.dan.retina_dl as cfg
     model = build_detector(cfg.model, train_cfg = cfg.train_cfg, test_cfg = cfg.test_cfg)
     dmodel=MMDataParallel(model)
+    data1=test[0]
+    view_dataset(test)
 
-    #view_dataset(gen)
-    data=gen[0]
-    model.simple_test(img=data['img'].data.reshape(1, 3, 512, 512).cuda(), img_meta=data['img_meta'].data)
+    data=test[0]
+
+    #model.simple_test(img=data['img'].data.reshape(1, 3, 512, 512).cuda(), img_meta=data['img_meta'].data)

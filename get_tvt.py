@@ -11,9 +11,9 @@ def make_csvs(loc=file_locs.csv_dir):
 def make_csvs_toy(loc=file_locs.csv_dir):
     df=pd.read_csv(file_locs.csv_dir+"DL_info.csv")
     train,val,test=df[df.Train_Val_Test==1],df[df.Train_Val_Test==2],df[df.Train_Val_Test==3]
-    train=train[:100]
-    val=val[:15]
-    test=val[:15]
+    train=train[:300]
+    val=val[:300]
+    test=val[:300]
 
     train.to_csv(loc+"DL_train_toy.csv")
     test.to_csv(loc+"DL_test_toy.csv")
@@ -32,5 +32,5 @@ def make_csvs_range(loc=file_locs.csv_dir,range=(0.4,0.6)):
     val.to_csv(loc + "DL_valid_body.csv")
 #HIIISDF
 if __name__ == "__main__":
-    make_csvs_range()
-    #make_csvs_toy()
+    #make_csvs_range()
+    make_csvs_toy()
