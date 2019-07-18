@@ -74,7 +74,6 @@ class DL_coco(CocoDataset):
             return data
 
     def prepare_train_img(self, idx):
-        import pdb; pdb.set_trace()
         img=self.get_img(idx)
         img_info=self.img_infos[idx]
         # load proposals if necessary
@@ -148,6 +147,7 @@ class DL_coco(CocoDataset):
             pad_shape=pad_shape,
             scale_factor=scale_factor,
             flip=flip,
+            #gt_bboxes=gt_bboxes
             )
 
         data = dict(
@@ -166,7 +166,7 @@ class DL_coco(CocoDataset):
             data['gt_semantic_seg'] = DC(to_tensor(gt_seg), stack=True)
 
 
-        data['file_name']=self.img_infos[idx]['file_name']
+        #data['file_name']=self.img_infos[idx]['file_name']
 
         return data
 
@@ -220,8 +220,6 @@ class DL_coco(CocoDataset):
             _img, _img_meta, _proposal = prepare_single(
                 img, scale, False, proposal)
             #TODO: THIS IS NOT ROBUST TO AUGMENTATIONS
-
-
             imgs.append(_img)
             img_metas.append(DC(_img_meta, cpu_only=True))
             proposals.append(_proposal)
@@ -234,11 +232,12 @@ class DL_coco(CocoDataset):
 
         ann=self.get_ann_info(idx)
         gt_bboxes=ann['bboxes']
+        import pdb; pdb.set_trace()
         data = dict(img=imgs, img_meta=img_metas,gt_bboxes=gt_bboxes)
         if self.proposals is not None:
             data['proposals'] = proposals
 
-        data['file_name']=self.img_infos[idx]['file_name']
+        #data['file_name']=self.img_infos[idx]['file_name']
         return data
 
     def get_img(self,idx):

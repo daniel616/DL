@@ -14,6 +14,9 @@ from mmcv.visualization.color import color_val
 from mmdet.core import tensor2imgs, get_classes, auto_fp16
 
 
+import sys
+sys.path.insert(0,"../../..")
+
 class BaseDetector(nn.Module):
     """Base class for detectors"""
 
@@ -106,7 +109,7 @@ class BaseDetector(nn.Module):
         else:
             bbox_result, segm_result = result, None
         img_tensor = data['img'][0]
-        img_tensor = scale_255(img_tensor)
+        img_tensor *= 255
         img_metas = data['img_meta'][0].data[0]
         if img_norm_cfg is None:
             num_imgs = img_tensor.size(0)
@@ -140,7 +143,7 @@ class BaseDetector(nn.Module):
             else:
                 h, w, _ = img_shape
             img_show = img[:h, :w, :]
-            img_show = scale_255(img_show)
+            #img_show = scale_255(img_show)
 
             bboxes = np.vstack(bbox_result)
             # draw segmentation masks
@@ -164,7 +167,7 @@ class BaseDetector(nn.Module):
                 bboxes,
                 labels,
                 out_file,
-                gt_bboxes=img_meta['bbox'],
+                gt_bboxes=data['gt_bboxes'],
                 class_names=class_names,
                 score_thr=score_thr
             )
@@ -217,12 +220,16 @@ def show_det_bboxes(img,
         addBox(img,bbox,bbox_color,label,class_names=class_names)
 
     if gt_bboxes is not None:
+        assert len(gt_bboxes)==1
+        gt_bboxes=gt_bboxes[0]
         for gt_box in gt_bboxes:
+            gt_box=gt_box.numpy()
             addBox(img,gt_box,gt_color,0,class_names=class_names)
 
     imwrite(img, out_file)
 
 def addBox(img,bbox,color,label,class_names=None):
+    bbox=bbox
     bbox_int = bbox.astype(np.int32)
     left_top = (bbox_int[0], bbox_int[1])
     right_bottom = (bbox_int[2], bbox_int[3])
@@ -235,18 +242,6 @@ def addBox(img,bbox,color,label,class_names=None):
     cv2.putText(img, label_text, (bbox_int[0], bbox_int[1] - 2),
                 cv2.FONT_HERSHEY_COMPLEX, 0.5, color)
 
-
-
-
-def scale_255(pic):
-    if isinstance(pic, np.ndarray):
-        pic = 255 * pic
-        return pic
-    if isinstance(pic, torch.Tensor):
-        pic = 255 * pic
-        return pic
-
-    raise TypeError("pic type unsupported")
 
 
 def to_numpy(tensor):

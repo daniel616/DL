@@ -11,7 +11,6 @@ from .registry import DATASETS
 from .builder import build_dataset
 
 from .dl_coco import DL_coco
-from .dl_custom import DLLoader
 
 __all__ = [
     'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset', 'GroupSampler',
