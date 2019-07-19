@@ -111,6 +111,7 @@ data
 .idea
 
 # custom
+mmcv
 *.png
 *.json
 results-*.txt
@@ -119,4 +120,6 @@ err-*.txt
 *.pkl
 *.pkl.json
 *.log.json
-work_dirs/
+work_dirs
+scratch
+site-packages

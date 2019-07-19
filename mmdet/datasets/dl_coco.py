@@ -232,7 +232,6 @@ class DL_coco(CocoDataset):
 
         ann=self.get_ann_info(idx)
         gt_bboxes=ann['bboxes']
-        import pdb; pdb.set_trace()
         data = dict(img=imgs, img_meta=img_metas,gt_bboxes=gt_bboxes)
         if self.proposals is not None:
             data['proposals'] = proposals

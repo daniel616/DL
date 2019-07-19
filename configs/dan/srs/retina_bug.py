@@ -22,10 +22,9 @@ model = dict(
         in_channels=256,
         stacked_convs=4,
         feat_channels=256,
-        octave_base_scale=4,
-        scales_per_octave=3,
-        anchor_ratios=[0.5, 1.0, 2.0],
-        anchor_strides=[8, 16, 32, 64, 128],
+        anchor_scales=[0.425,0.540,0.680],
+        anchor_ratios=[3.27, 1.78,1.0, 1/1.78,1/3.27],
+        anchor_strides=[32, 64, 128,256,512],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
         loss_cls=dict(
@@ -56,15 +55,15 @@ test_cfg = dict(
 dataset_type =  'DL_coco'
 data_root = 'data/deeplesion/'
 data = dict(
-    imgs_per_gpu=2,
-    workers_per_gpu=0,
+    imgs_per_gpu=16,
+    workers_per_gpu=2,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'DL_train.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
-        flip_ratio=0,
+        flip_ratio=0.5,
         with_label=True),
     val=dict(
         type=dataset_type,
@@ -84,7 +83,7 @@ data = dict(
         with_label=False,
         test_mode=True))
 # optimizer
-optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -103,11 +102,11 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 24
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retina_old'
+work_dir = './work_dirs/retina_bug'
 load_from = None
 resume_from = None#work_dir+"/latest.pth"
 workflow = [('train', 1)]

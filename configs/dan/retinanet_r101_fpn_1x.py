@@ -56,19 +56,19 @@ test_cfg = dict(
 dataset_type =  'DL_coco'
 data_root = 'data/deeplesion/'
 data = dict(
-    imgs_per_gpu=2,
-    workers_per_gpu=0,
+    imgs_per_gpu=4,
+    workers_per_gpu=2,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'DL_train.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
-        flip_ratio=0,
+        flip_ratio=0.5,
         with_label=True),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_val.csv',
+        ann_file=data_root + 'DL_val_toy.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
@@ -76,15 +76,16 @@ data = dict(
         with_label=True),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_test.csv',
+        ann_file=data_root + 'DL_test_toy.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512,512),
         size_divisor=32,
         flip_ratio=0,
-        with_label=False,
+        with_label=True,
         test_mode=True))
+# optimize
 # optimizer
-optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='Adam', lr=0.0001,  weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -107,7 +108,7 @@ total_epochs = 12
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retina_old'
+work_dir = './work_dirs/retinanet_r101_fpn_1x'
 load_from = None
-resume_from = None#work_dir+"/latest.pth"
+resume_from = None
 workflow = [('train', 1)]

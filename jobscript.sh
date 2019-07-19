@@ -6,7 +6,7 @@
 #SBATCH -o results-%A.txt
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=li.daniel616@gmail.com
-
+#SBATCH --job-name=retina_old_p
 
 
 
