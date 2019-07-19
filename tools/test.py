@@ -26,6 +26,7 @@ def single_gpu_test(model, data_loader, show=False):
          #   break
         with torch.no_grad():
             result = model(return_loss=False, rescale=not show, **data)
+        import pdb; pdb.set_trace()
         results.append(result)
 
         if show and i<150:

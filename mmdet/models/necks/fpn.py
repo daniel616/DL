@@ -32,6 +32,8 @@ class FPN(nn.Module):
         self.relu_before_extra_convs = relu_before_extra_convs
         self.fp16_enabled = False
 
+
+
         if end_level == -1:
             self.backbone_end_level = self.num_ins
             assert num_outs >= self.num_ins - start_level
