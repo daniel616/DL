@@ -160,13 +160,14 @@ class BaseDetector(nn.Module):
                 for i, bbox in enumerate(bbox_result)
             ]
             labels = np.concatenate(labels)
+            gt_bboxes=data['gt_bboxes'].data[0]
 
             show_det_bboxes(
                 img_show,
                 bboxes,
                 labels,
                 out_file,
-                gt_bboxes=data['gt_bboxes'],
+                gt_bboxes=gt_bboxes,
                 class_names=class_names,
                 score_thr=score_thr
             )
@@ -188,10 +189,10 @@ def show_det_bboxes(img,
                     out_file,
                     gt_bboxes=None,
                     class_names=None,
-                    score_thr=0,
+                    score_thr=0.05,
                     bbox_color='yellow',
                     gt_color='green',
-                    top_k=20
+                    top_k=5
                     ):
 
     assert bboxes.ndim == 2
