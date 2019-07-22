@@ -49,9 +49,6 @@ def FROC_eval(coco, coco_dets):
     n_imgs = len(coco.getImgIds())
     ret = []
 
-
-
-
     for p_thrs in np.arange(0.0, 0.5, 0.0025):
         t_positives = 0
         f_positives = 0
@@ -72,6 +69,7 @@ def FROC_eval(coco, coco_dets):
 
         tps, fps = t_positives / n_imgs, f_positives / n_imgs
         ret.append((fps, tps))
+        if fps<=4: break
 
     print(ret)
 

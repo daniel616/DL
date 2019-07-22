@@ -25,6 +25,7 @@ model = dict(
         octave_base_scale=4,
         scales_per_octave=3,
         anchor_ratios=[0.5, 1.0, 2.0],
+        #=512/featmap_size
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
@@ -57,7 +58,7 @@ dataset_type =  'DL_coco'
 data_root = 'data/deeplesion/'
 data = dict(
     imgs_per_gpu=2,
-    workers_per_gpu=0,
+    workers_per_gpu=1,
     train=dict(
         type=dataset_type,
         ann_file=data_root + 'DL_train.csv',
@@ -103,11 +104,11 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 15
 device_ids = range(8)
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/retina_old'
+work_dir = './work_dirs/retina_default'
 load_from = None
 resume_from = None#work_dir+"/latest.pth"
 workflow = [('train', 1)]

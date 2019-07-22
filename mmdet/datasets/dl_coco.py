@@ -255,10 +255,13 @@ def _conv(x):
     pre = "_".join(parts[:-1])
     return osp.join(pre, parts[-1])
 
+
+
 def DICOM_window(x,min_w=-275,max_w=175):
     x=np.clip(x,a_min=min_w,a_max=max_w)
     x=(x-min_w)/(max_w-min_w)
     return x
+
 
 '''
 

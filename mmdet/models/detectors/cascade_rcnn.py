@@ -237,7 +237,7 @@ class CascadeRCNN(BaseDetector, RPNTestMixin):
 
         return losses
 
-    def simple_test(self, img, img_meta, proposals=None, rescale=False):
+    def simple_test(self, img, img_meta, proposals=None, rescale=False, **kwargs):
         x = self.extract_feat(img)
         proposal_list = self.simple_test_rpn(
             x, img_meta, self.test_cfg.rpn) if proposals is None else proposals

@@ -106,7 +106,6 @@ class AnchorHead(nn.Module):
 #HI
         # since feature map sizes of all images are the same, we only compute
         # anchors for one time
-        import pdb; pdb.set_trace()
         multi_level_anchors = []
         for i in range(num_levels):
             anchors = self.anchor_generators[i].grid_anchors(

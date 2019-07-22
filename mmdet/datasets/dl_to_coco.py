@@ -1,14 +1,19 @@
 import os.path as osp
 
 
-
 import pycocotools.mask as maskUtils
 import pandas as pd
 import json
 import numpy as np
 
+from skimage import io
+
 import cv2
-def to_coco(csv,out_file):
+import sys
+
+sys.path.insert(0,"../..")
+from file_locs import image_dir
+def to_coco(csv,out_file,use_grabcut=False):
     df= pd.read_csv(csv)
     df=df[df['Possibly_noisy']==0]
     df['id']=df.index
@@ -16,7 +21,9 @@ def to_coco(csv,out_file):
     intermed = [v for k, v in df.to_dict(orient='index').items()]
     annotations=[]
     img_infos=[]
-    for x in intermed:
+    for idx, x in enumerate(intermed):
+        if use_grabcut and idx%500==0:
+            print("Grabcutting...", idx)
         s_range= [int(t) for t in x['Slice_range'].split(", ")]
         key=x['Key_slice_index']
         adjacents=[max(key-1,s_range[0]),min(key+1,s_range[1])]
@@ -35,24 +42,43 @@ def to_coco(csv,out_file):
             'id':x['id']
         }
 
-        b=[ float(t) for t in x['Bounding_boxes'].split(", ")]
+        b=[ int(float(t)) for t in x['Bounding_boxes'].split(", ")]
         box_coco=[b[0],b[1],b[2]-b[0],b[3]-b[1]]
-        segpoints=get_seg(x['Measurement_coordinates'])
-        #mask_rles=grabseg()
-        rles=maskUtils.frPyObjects(segpoints,512,512)
-        rle=maskUtils.merge(rles)
-        area=maskUtils.area(rle)
-
 
         ann_info={
-            "segmentation":segpoints,
+            #"segmentation":rle,
             'image_id':x['id'],
             'id':x['id'],
             'iscrowd':0,
             'category_id':1,
-            'area':float(area),
+            #'area':float(area),
             'bbox':box_coco
         }
+        spoints=get_seg(x['Measurement_coordinates'])
+
+        if not use_grabcut:
+            rle=maskUtils.frPyObjects([spoints],512,512)
+            #rle = maskUtils.merge(rle)
+            area=maskUtils.area(rle)[0]
+            ann_info['area']=float(area)
+            ann_info['segmentation']=[spoints]
+        else:
+            f_name=img_info['file_name']
+            w = [float(t) for t in x['DICOM_windows'].split(", ")]
+            img=get_img(f_name,w)
+
+            pts=np.array([[[spoints[0],spoints[1]],
+                            [spoints[2],spoints[3]],
+                            [spoints[4],spoints[5]],
+                            [spoints[6],spoints[7]]]],dtype=np.int32)
+            rle=grabseg(img,b,pts)
+            area=maskUtils.area(rle)[0]
+            ann_info['area']=float(area),
+            ann_info['segmentation']=rle
+
+
+
+
         img_infos.append(img_info)
         annotations.append(ann_info)
 
@@ -63,7 +89,7 @@ def to_coco(csv,out_file):
         'annotations':annotations,
         'categories':categories
     }
-    
+
     with open(out_file,'w+') as json_file:
         json.dump(dataset,json_file)
 
@@ -78,7 +104,7 @@ def pad(v):
 def get_seg(st):
     v = [float(x) for x in st.split(", ")]
 
-    return [[v[0],v[1],v[4],v[5],v[2],v[3],v[6],v[7]]]
+    return [v[0],v[1],v[4],v[5],v[2],v[3],v[6],v[7]]
 
 def _conv(x):
     parts = x.split("_")
@@ -89,18 +115,36 @@ def _conv(x):
 def grabseg(img,bbox,pts):
     mask = np.zeros(img.shape, dtype=np.uint8)#(zero is background)
     assert isinstance(pts,np.ndarray)
-    cv2.fillPoly(mask,bbox,cv2.GC_PR_BGD)
+    cv2.rectangle(mask,(bbox[0],bbox[1]),(bbox[2],bbox[3]),cv2.GC_PR_BGD,
+                  thickness=-1)
     cv2.fillPoly(mask,pts,cv2.GC_FGD)
+    assert len(mask.shape)==2
 
-    #masked_image = cv2.bitwise_and(img, mask)
-    #cv2.imwrite('image_masked.png', masked_image)
+    bgdModel = np.zeros((1, 65), np.float64)
+    fgdModel = np.zeros((1, 65), np.float64)
 
-
-    bgdModel = np.zeros(img.shape,np.float64)
-    fgdModel = np.zeros(img.shape,np.float64)
-
+    img=img.reshape(512,512,1)
+    img=np.tile(img,(1,1,3))
     cv2.grabCut(img, mask, None, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_MASK)
     mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
+    #cv2.imwrite('test.png',img[:,:,0]*mask2)
+    mask2=np.asfortranarray(mask2)
+
     return maskUtils.encode(mask2)
 
+
+
+def DICOM_window(x,min_w=-275.,max_w=175.0):
+    x=np.clip(x,a_min=min_w,a_max=max_w)
+    x=(x-min_w)/(max_w-min_w)
+    return x
+
+def get_img(f_name,window):
+    assert window[1]>window[0]
+    img=io.imread(osp.join(image_dir,f_name)).astype(np.int32)
+    img-=32768
+    img=img.astype(np.float32)
+    img=DICOM_window(img,max_w=window[1],min_w=window[0])
+    img=(255*img).astype(np.uint8)
+    return img
 
