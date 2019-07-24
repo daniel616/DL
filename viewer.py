@@ -6,6 +6,7 @@ from PIL import Image, ImageStat, ImageDraw
 import torch
 from mmdet.models import build_detector
 from mmcv.parallel import MMDataParallel
+import matplotlib.pyplot as plt
 
 def view_dataset(gen,max_imgs=150):
     max_imgs=min(max_imgs,len(gen))
@@ -14,44 +15,62 @@ def view_dataset(gen,max_imgs=150):
         img=data['img'][0]
         img=tonumpy(img)
 
-        gt_bboxes=data['gt_bboxes']
+        gt_bboxes=data['gt_bboxes'].data
 
-        view_image(img,gt_bboxes,"markings/"+str(i)+".png",text=data['file_name'])
+        gt_masks=None
+        if 'gt_masks' in data:
+            gt_masks=data['gt_masks'].data
+        view_image(img,gt_bboxes,
+                   "markings/"+str(i)+".png",
+                   text=data['file_name'].data,
+                   gt_masks=gt_masks)
 
-def view_image(img,gt_bboxes,out_file, dt_bboxes=None,gt_mask=None,text=None):
+def view_image(img,gt_bboxes,out_file, dt_bboxes=None,gt_masks=None,text=None):
     if img.max()<=1:
         img=(img*255)
     img=img.astype(np.uint8)
     assert len(img.shape)==3
 
-    for idx in range(img.shape[0]):
-        if idx>0: continue
-        slice=img[idx]
-        slice=np.tile(slice,(3,1,1))
-        slice=np.transpose(slice,[1,2,0])
-        slice=Image.fromarray(slice).convert('RGB')
-        draw=ImageDraw.Draw(slice)
+    slice=img[0]
+    slice=np.tile(slice,(3,1,1))
+    slice=np.transpose(slice,[1,2,0])
 
-        gt_bboxes=[[int(t) for t in x] for x in gt_bboxes]
-        for box in gt_bboxes:
-            draw.rectangle(((box[0],box[1]),(box[2],box[3])), outline='green')
+    fig= plt.figure(figsize=(9,4.5))
+    fig.add_subplot(1,2,1)
+    plt.imshow(slice)
+    plt.axis('off')
 
-        if dt_bboxes is not None:
-            dt_bboxes=[[int(t) for t in x] for x in dt_bboxes]
-            for box in dt_bboxes:
-                draw.rectangle(((box[0],box[1]),(box[2],box[3])),
-                               outline='yellow')
+    slice=Image.fromarray(slice).convert('RGB')
+    draw=ImageDraw.Draw(slice)
+    gt_bboxes=[[int(t) for t in x] for x in gt_bboxes]
+    for box in gt_bboxes:
+        draw.rectangle(((box[0],box[1]),(box[2],box[3])), outline='green')
 
-        if text is not None:
-            draw.text((250,10),text)
+    if dt_bboxes is not None:
+        dt_bboxes=[[int(t) for t in x] for x in dt_bboxes]
+        for box in dt_bboxes:
+            draw.rectangle(((box[0],box[1]),(box[2],box[3])),
+                           outline='blue')
 
-        if gt_mask is not None:
-            assert False,"not implemented yet"
-            mask=mask*64
-            mask=Image.fromarray(mask)
-            overlay=Image.new(mode='RGB',size=img.size,color='RED')
-            slice.paste(overlay,(0,0),mask=mask)
-        slice.save(out_file)
+    if text is not None:
+        draw.text((250,10),text)
+
+    if gt_masks is not None:
+        overlay=Image.new(mode='RGB',size=(512,512),color='RED')
+        for mask in gt_masks:
+            assert mask.max()<=1
+            pil_mask = Image.fromarray(np.uint8(255 * mask))
+            slice.paste(overlay,(0,0),mask=pil_mask)
+
+    fig.add_subplot(1,2,2)
+    plt.imshow(np.array(slice))
+    plt.axis('off')
+    plt.subplots_adjust(wspace=None, hspace=None)
+    fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+
+    mydpi=200
+    plt.savefig(out_file,dpi=mydpi,pad_inches=0)
+    plt.close()
 
 def un(val):
     assert isinstance(val,DataContainer), "not DataContainer"
@@ -67,18 +86,14 @@ def tonumpy(val):
 if __name__ == "__main__":
     train=DL_coco(file_locs.csv_dir+"DL_train_toy.csv",file_locs.image_dir,
                 with_mask=True,use_context=True,test_mode=False)
-    test=DL_coco(file_locs.csv_dir+"DL_test.csv",file_locs.image_dir,
-                with_mask=True,use_context=True,test_mode=True)
+    test=DL_coco(file_locs.csv_dir+"DL_train_toy.csv",file_locs.image_dir,
+                with_mask=True,use_context=True,test_mode=True,grabcut=False)
 
     import pandas as pd
     df= pd.read_csv(file_locs.csv_dir+"DL_test.csv")
 
-    import configs.dan.retina_dl as cfg
-    model = build_detector(cfg.model, train_cfg = cfg.train_cfg, test_cfg = cfg.test_cfg)
-    dmodel=MMDataParallel(model)
     data1=test[0]
     view_dataset(test)
 
     data=test[0]
 
-    #model.simple_test(img=data['img'].data.reshape(1, 3, 512, 512).cuda(), img_meta=data['img_meta'].data)

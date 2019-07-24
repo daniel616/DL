@@ -5,33 +5,36 @@ import torch
 import numpy as np
 import copy
 
-
 import configs.dan.srs.retina_dl as cfg
-
 from mmdet.models import build_detector,build_head
-
 import matplotlib.pyplot as plt
-
 import time
 
-data=DL_coco(file_locs.csv_dir + "DL_valid.csv", file_locs.image_dir,
+
+import copy
+
+def get_req():
+    data=DL_coco(file_locs.csv_dir + "DL_valid.csv", file_locs.image_dir,
                  with_mask=True, use_context=True, test_mode=True)
 
-model_ = build_detector(cfg.model, train_cfg = cfg.train_cfg, test_cfg = cfg.test_cfg)
+    model_ = build_detector(cfg.model, train_cfg = cfg.train_cfg, test_cfg = cfg.test_cfg)
 
 
-im=data[0]['img'][0]
-im=im.reshape(-1,3,512,512)
-feats=model_.extract_feat(im)
-featmap_sizes = [featmap.size()[-2:] for featmap in feats]
-met=data[0]['img_meta'][0].data
+    im=data[0]['img'][0]
+    im=im.reshape(-1,3,512,512)
+    feats=model_.extract_feat(im)
+    featmap_sizes = [featmap.size()[-2:] for featmap in feats]
+    met=data[0]['img_meta'][0].data
 
 
-anns=data.coco.anns
-boxes= np.array([v['bbox'] for x, v in anns.items()])
-boxes[:,2]=boxes[:,0]+boxes[:,2]
-boxes[:,3]=boxes[:,1]+boxes[:,3]
+    anns=data.coco.anns
+    boxes= np.array([v['bbox'] for x, v in anns.items()])
+    boxes[:,2]=boxes[:,0]+boxes[:,2]
+    boxes[:,3]=boxes[:,1]+boxes[:,3]
 
+    return featmap_sizes,met,boxes
+
+featmap_sizes,met,boxes= get_req()
 
 
 def param_search():
@@ -54,10 +57,16 @@ def de_func(arr):
     return eval_anchor_cfg(scales,ratios)
 
 
-
-def de(fobj, bounds, mut=0.8, crossp=0.7, popsize=20, its=500):
+#bounds are only for initialization
+def de(fobj, bounds, mut=0.8, crossp=0.7, popsize=20, its=500,initializers=[]):
     dimensions = len(bounds)
     pop = np.random.rand(popsize, dimensions)
+    assert len(initializers)<=popsize
+    for i, x in enumerate(initializers):
+        assert len(x)==2
+        val=normalize(x[0],x[1],bounds)
+        pop[i]=val
+
     min_b, max_b = np.asarray(bounds).T
     diff = np.fabs(min_b - max_b)
     pop_denorm = min_b + pop * diff
@@ -68,9 +77,10 @@ def de(fobj, bounds, mut=0.8, crossp=0.7, popsize=20, its=500):
 
         start=time.time()
         for j in range(popsize):
-
             idxs = [idx for idx in range(popsize) if idx != j]
             a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
+
+            #mutant = a + mut * (b - c)
             mutant = np.clip(a + mut * (b - c), 0, 1)
             cross_points = np.random.rand(dimensions) < crossp
             if not np.any(cross_points):
@@ -85,10 +95,18 @@ def de(fobj, bounds, mut=0.8, crossp=0.7, popsize=20, its=500):
                     best_idx = j
                     best = trial_denorm
         end=time.time()
-        print("iteration:",i," Time taken:",end-start,
-              "best:",fitness[best_idx])
+        print("iteration:",i," Time taken:",end-start,)
+        print("best:",best," fitness:",fitness[best_idx])
 
-        yield best, fitness[best_idx]
+def normalize(scales,ratios,bounds):
+    prenorm=scales.copy()
+    prenorm.extend(ratios)
+    assert len(prenorm)==len(bounds)
+    norm=[(prenorm[i]-b[0])/(b[1]-b[0]) for i, b in enumerate(bounds)]
+    norm=np.array(norm)
+    assert norm.max()<=1 and norm.min()>=0
+    return norm
+
 
 
 def eval_anchor_cfg(anchor_scales,
@@ -99,7 +117,6 @@ def eval_anchor_cfg(anchor_scales,
         my_cfg['anchor_scales']=anchor_scales
         my_cfg['anchor_ratios']=anchor_ratios
     anchor_head=build_head(my_cfg)
-
     anchs, _ =anchor_head.get_anchors(featmap_sizes,[met])
     all_anchors=torch.cat(anchs[0])
     all_anchors=all_anchors.cpu().numpy()
@@ -131,9 +148,12 @@ def summarize(gt_boxes):
 
 
 if __name__ == "__main__":
-    it=de(de_func,[[1,2],[2,4],[0.4,1.6],[0.4,1.6],[0.4,1.6]],its=500)
-    print(list(it))
+
+    de(de_func,[[1.5,2.5],[2,4],[3,4],[2,4],[2,4]],
+       its=500, initializers=[])
+    #print(list(it))
     print(eval_anchor_cfg([],[]))
     #summarize(boxes)
+
 
 

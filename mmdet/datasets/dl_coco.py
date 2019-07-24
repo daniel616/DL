@@ -31,6 +31,7 @@ class DL_coco(CocoDataset):
                  with_mask=False,
                  with_crowd=False,
                  use_context=False,
+                 grabcut=False,
                  **kwargs):
         ftype = ann_file.split(".")[-1]
         assert ftype == 'csv' or ftype == 'json'
@@ -42,7 +43,7 @@ class DL_coco(CocoDataset):
                                           **kwargs)
         else:
             new_name = to_json(ann_file)
-            to_coco(ann_file, new_name)
+            to_coco(ann_file, new_name,use_grabcut=grabcut)
             super(DL_coco, self).__init__(new_name,img_prefix,img_scale,img_norm_cfg,
                                           with_mask=with_mask,with_crowd=with_crowd,
                                           **kwargs)
@@ -223,18 +224,15 @@ class DL_coco(CocoDataset):
             imgs.append(_img)
             img_metas.append(DC(_img_meta, cpu_only=True))
             proposals.append(_proposal)
-            if self.flip_ratio > 0:
-                _img, _img_meta, _proposal = prepare_single(
-                    img, scale, True, proposal)
-                imgs.append(_img)
-                img_metas.append(DC(_img_meta, cpu_only=True))
-                proposals.append(_proposal)
 
         ann=self.get_ann_info(idx)
         gt_bboxes=ann['bboxes']
         data = dict(img=imgs, img_meta=img_metas,gt_bboxes=DC(to_tensor(gt_bboxes)))
         if self.proposals is not None:
             data['proposals'] = proposals
+        if self.with_mask:
+            gt_masks=ann['masks']
+            data['gt_masks'] = DC(gt_masks, cpu_only=True)
 
         #data['file_name']=self.img_infos[idx]['file_name']
         return data

@@ -44,6 +44,10 @@ def bbox_overlaps(bboxes1, bboxes2, mode='iou'):
         else:
             union = area1[i] if not exchange else area2
         ious[i, :] = overlap / union
+
+        if np.isnan(ious).any() or union.min()<0:
+            import pdb; pdb.set_trace()
+            print("union min:",union.min(),"overlap min:", overlap.min())
     if exchange:
         ious = ious.T
     return ious

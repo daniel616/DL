@@ -212,7 +212,8 @@ data = dict(
         with_mask=True,
         with_crowd=False,
         with_label=True,
-        use_context=True),
+        use_context=True,
+        grabcut=True),
     val=dict(
         type=dataset_type,
         ann_file=data_root + 'DL_val.csv',
@@ -233,7 +234,7 @@ data = dict(
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
-        with_mask=True,
+        with_mask=False,
         with_label=False,
         test_mode=True,
         use_context=True))
@@ -257,7 +258,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 12
+total_epochs = 50
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/htc_without_semantic_r50_fpn_1x'
