@@ -5,7 +5,7 @@ import torch
 import numpy as np
 import copy
 
-import configs.dan.srs.retina_dl as cfg
+import configs.dan.srs.retina_anchor as cfg
 from mmdet.models import build_detector,build_head
 import matplotlib.pyplot as plt
 import time
@@ -37,23 +37,12 @@ def get_req():
 featmap_sizes,met,boxes= get_req()
 
 
-def param_search():
-    anchor_scales=[1]
-    anchor_ratios=[1]
-
-    for idx, i in enumerate(np.arange(0,3,0.3)):
-        anchor_ratios.append(i)
-        anchor_scales.append(i)
-        if idx%10==9:
-            print(anchor_scales,anchor_ratios)
-            print(eval_anchor_cfg(anchor_scales,anchor_ratios))
-
-
+#inputs should already be denormalized
 def de_func(arr):
     assert len(arr)==5
-    ratios=arr[:2].tolist()
+    scales=arr[:3].tolist()
+    ratios=arr[3:].tolist()
     ratios.extend([1,1/ratios[0],1/ratios[1]])
-    scales=arr[2:].tolist()
     return eval_anchor_cfg(scales,ratios)
 
 
@@ -80,8 +69,8 @@ def de(fobj, bounds, mut=0.8, crossp=0.7, popsize=20, its=500,initializers=[]):
             idxs = [idx for idx in range(popsize) if idx != j]
             a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
 
-            #mutant = a + mut * (b - c)
-            mutant = np.clip(a + mut * (b - c), 0, 1)
+            mutant = a + mut * (b - c)
+            #mutant = np.clip(a + mut * (b - c), 0, 1)
             cross_points = np.random.rand(dimensions) < crossp
             if not np.any(cross_points):
                 cross_points[np.random.randint(0, dimensions)] = True
@@ -94,12 +83,13 @@ def de(fobj, bounds, mut=0.8, crossp=0.7, popsize=20, its=500,initializers=[]):
                 if f < fitness[best_idx]:
                     best_idx = j
                     best = trial_denorm
+
         end=time.time()
         print("iteration:",i," Time taken:",end-start,)
         print("best:",best," fitness:",fitness[best_idx])
 
-def normalize(scales,ratios,bounds):
-    prenorm=scales.copy()
+def normalize(scales,ratios, bounds):
+    prenorm=list(scales)
     prenorm.extend(ratios)
     assert len(prenorm)==len(bounds)
     norm=[(prenorm[i]-b[0])/(b[1]-b[0]) for i, b in enumerate(bounds)]
@@ -107,22 +97,36 @@ def normalize(scales,ratios,bounds):
     assert norm.max()<=1 and norm.min()>=0
     return norm
 
-
-
 def eval_anchor_cfg(anchor_scales,
-                    anchor_ratios):
+                    anchor_ratios,
+                    img_dim=(512,512)):
 
     my_cfg=copy.deepcopy(cfg.model['bbox_head'])
     if not (len(anchor_ratios)==len(anchor_scales)==0):
         my_cfg['anchor_scales']=anchor_scales
         my_cfg['anchor_ratios']=anchor_ratios
     anchor_head=build_head(my_cfg)
-    anchs, _ =anchor_head.get_anchors(featmap_sizes,[met])
+
+    anchs, flags =anchor_head.get_anchors(featmap_sizes,[met])
+
+
     all_anchors=torch.cat(anchs[0])
-    all_anchors=all_anchors.cpu().numpy()
+    all_flags=torch.cat(flags[0])
 
-    s=score(boxes,all_anchors)
+    f_anchors=all_anchors[all_flags,:]
+    a_mins=f_anchors.min(1)[0]
+    f_anchors=f_anchors[a_mins>=0,:]
 
+    x_max=f_anchors[:,2]
+    f_anchors=f_anchors[x_max<=img_dim[0],:]
+    y_max=f_anchors[:,3]
+    f_anchors=f_anchors[y_max<=img_dim[1],:]
+
+
+
+    f_anchors=f_anchors.cpu().numpy()
+
+    s=score(boxes,f_anchors)
 
     #heights=boxes[:,3]-boxes[:,1]
     #widths=boxes[:,2]-boxes[:,0]
@@ -149,8 +153,10 @@ def summarize(gt_boxes):
 
 if __name__ == "__main__":
 
-    de(de_func,[[1.5,2.5],[2,4],[3,4],[2,4],[2,4]],
-       its=500, initializers=[])
+    de(de_func,[[0,1],[0,1],[1,2],[1,4],[1,5]],
+       its=500, initializers=[
+            ((0.5,0.5,1.5),(3,2))
+        ])
     #print(list(it))
     print(eval_anchor_cfg([],[]))
     #summarize(boxes)
