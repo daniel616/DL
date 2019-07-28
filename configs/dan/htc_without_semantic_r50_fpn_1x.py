@@ -203,18 +203,20 @@ data = dict(
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_train_toy.csv',
+        ann_file=data_root + 'DL_train.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
-        flip_ratio=0.5,
+        flip_ratio=0,
         with_mask=True,
         with_crowd=False,
-        with_label=True),
+        with_label=True,
+        use_context=True,
+        grabcut=True),
     val=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_val_toy.json',
+        ann_file=data_root + 'DL_val.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         img_norm_cfg=img_norm_cfg,
@@ -222,18 +224,20 @@ data = dict(
         flip_ratio=0,
         with_mask=True,
         with_crowd=True,
-        with_label=True),
+        with_label=True,
+        use_context=True),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_test_toy.json',
+        ann_file=data_root + 'DL_test.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
-        with_mask=True,
+        with_mask=False,
         with_label=False,
-        test_mode=True))
+        test_mode=True,
+        use_context=True))
 # optimizer
 optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
@@ -254,7 +258,7 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 1
+total_epochs = 50
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
 work_dir = './work_dirs/htc_without_semantic_r50_fpn_1x'

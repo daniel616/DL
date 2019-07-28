@@ -3,9 +3,8 @@ from mmdet.datasets import DL_coco
 from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
 import torch
 import numpy as np
-import copy
 
-import configs.dan.srs.retina_anchor as cfg
+import configs.dan.retina_anchor as cfg
 from mmdet.models import build_detector,build_head
 import matplotlib.pyplot as plt
 import time
