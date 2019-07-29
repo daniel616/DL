@@ -1,6 +1,7 @@
 from .custom import CustomDataset
 from .xml_style import XMLDataset
 from .coco import CocoDataset
+from .cityscapes import CityscapesDataset
 from .voc import VOCDataset
 from .wider_face import WIDERFaceDataset
 from .loader import GroupSampler, DistributedGroupSampler, build_dataloader
@@ -13,12 +14,10 @@ from .builder import build_dataset
 from .dl_coco import DL_coco
 
 __all__ = [
-    'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset', 'GroupSampler',
-    'DistributedGroupSampler', 'build_dataloader', 'to_tensor', 'random_scale',
-
-    'show_ann', 'ConcatDataset', 'RepeatDataset',
-    'ExtraAugmentation', 'WIDERFaceDataset', 'DATASETS','build_dataset',
-    'DLLoader', 'DL_coco',
-
+    'CustomDataset', 'XMLDataset', 'CocoDataset', 'VOCDataset',
+    'CityscapesDataset', 'GroupSampler', 'DistributedGroupSampler',
+    'build_dataloader', 'to_tensor', 'random_scale', 'show_ann',
+    'ConcatDataset', 'RepeatDataset', 'ExtraAugmentation',
+    'WIDERFaceDataset', 'DATASETS', 'build_dataset','DL_coco'
 ]
 

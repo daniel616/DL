@@ -123,3 +123,6 @@ err-*.txt
 work_dirs
 scratch
 site-packages
+
+# Pytorch
+*.pth
