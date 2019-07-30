@@ -13,7 +13,7 @@ import sys
 import datetime
 
 sys.path.insert(0,"../..")
-from file_locs import image_dir
+from file_locs import image_dir,csv_dir
 
 def to_coco(csv,out_file,use_grabcut=False):
     df= pd.read_csv(csv)
@@ -179,4 +179,12 @@ def get_img(f_name,window):
     img=DICOM_window(img,max_w=window[1],min_w=window[0])
     img=(255*img).astype(np.uint8)
     return img
+
+
+if __name__=="__main__":
+    to_coco(csv_dir+"DL_train.csv",csv_dir+"DL_train_grab.json",use_grabcut=True)
+    to_coco(csv_dir+"DL_test.csv",csv_dir+"DL_test_grab.json",use_grabcut=True)
+    to_coco(csv_dir+"DL_valid.csv",csv_dir+"DL_valid_grab.json",use_grabcut=True)
+    #to_coco(csv_dir+"DL_test.csv","DL_test_grab.json",use_grabcut=True)
+    #to_coco(csv_dir+"DL_valid.csv","DL_valid_grab.json",use_grabcut=True)
 

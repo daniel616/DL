@@ -34,7 +34,7 @@ class DL_coco(CocoDataset):
                  grabcut=False,
                  **kwargs):
         ftype = ann_file.split(".")[-1]
-        assert ftype == 'csv' or ftype == 'json'
+        assert ftype == 'json'
         self.use_context=use_context
 
         if ftype == 'json':

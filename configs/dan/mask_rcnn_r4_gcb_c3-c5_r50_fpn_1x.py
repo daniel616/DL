@@ -4,7 +4,7 @@ model = dict(
     pretrained='modelzoo://resnet50',
     backbone=dict(
         type='ResNet',
-        depth=50,
+        depth=101,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
@@ -124,7 +124,7 @@ data = dict(
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_train_toy.csv',
+        ann_file=data_root + 'DL_train.json',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
         size_divisor=32,
@@ -142,7 +142,7 @@ data = dict(
         with_label=True),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_test_toy.csv',
+        ann_file=data_root + 'DL_test.json',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512,512),
         size_divisor=32,
@@ -152,7 +152,7 @@ data = dict(
         test_mode=True))
 
 # optimizer
-optimizer = dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0001)
+optimizer = dict(type='SGD', lr=0.002, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(

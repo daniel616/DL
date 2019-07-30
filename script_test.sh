@@ -1,9 +1,8 @@
 #!/bin/bash
-#SBATCH -e err-%A.txt
-#SBATCH -p gpu-common --gres=gpu:1
-#SBATCH --mem=16G
+#SBATCH -p dsplus-gpu --gres=gpu:1
+#SBATCH --mem=10G
 #SBATCH -c 10
-#SBATCH -o results-%A.txt
+#SBATCH -o test-%A.txt
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=li.daniel616@gmail.com
 

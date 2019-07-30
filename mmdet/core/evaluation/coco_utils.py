@@ -69,7 +69,7 @@ def FROC_eval(coco, coco_dets):
 
         tps, fps = t_positives / n_imgs, f_positives / n_imgs
         ret.append((fps, tps))
-        if fps<=4: break
+        if fps>4: break
 
     print(ret)
 

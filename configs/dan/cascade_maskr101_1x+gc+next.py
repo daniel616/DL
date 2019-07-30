@@ -1,17 +1,20 @@
 # model settings
 model = dict(
-    type='HybridTaskCascade',
+    type='CascadeRCNN',
     num_stages=3,
-    pretrained='modelzoo://resnet50',
-    interleaved=True,
-    mask_info_flow=True,
+    pretrained='open-mmlab://resnext101_64x4d',
     backbone=dict(
-        type='ResNet',
-        depth=50,
+        type='ResNeXt',
+        depth=101,
+        groups=64,
         num_stages=4,
         out_indices=(0, 1, 2, 3),
         frozen_stages=1,
-        style='pytorch'),
+        style='pytorch',
+        gcb=dict(
+            ratio=1./4.,
+        ),
+        stage_with_gcb=(False, True, True, True)),
     neck=dict(
         type='FPN',
         in_channels=[256, 512, 1024, 2048],
@@ -79,7 +82,7 @@ model = dict(
             roi_feat_size=7,
             num_classes=2,
             target_means=[0., 0., 0., 0.],
-            target_stds=[1, 1, 1, 1],
+            target_stds=[0.033, 0.033, 0.067, 0.067],
             reg_class_agnostic=True,
             loss_cls=dict(
                 type='CrossEntropyLoss',
@@ -96,7 +99,7 @@ model = dict(
         out_channels=256,
         featmap_strides=[4, 8, 16, 32]),
     mask_head=dict(
-        type='HTCMaskHead',
+        type='FCNMaskHead',
         num_convs=4,
         in_channels=256,
         conv_out_channels=256,
@@ -188,58 +191,50 @@ test_cfg = dict(
         nms_thr=0.7,
         min_bbox_size=0),
     rcnn=dict(
-        score_thr=0.001,
+        score_thr=0.05,
         nms=dict(type='nms', iou_thr=0.5),
         max_per_img=100,
         mask_thr_binary=0.5),
     keep_all_stages=False)
 # dataset settings
-dataset_type = 'DL_coco'
+# dataset settings
+dataset_type =  'DL_coco'
 data_root = 'data/deeplesion/'
-img_norm_cfg = dict(
-    mean=[0, 0, 0], std=[1, 1, 1], to_rgb=True)
 data = dict(
     imgs_per_gpu=2,
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_train.csv',
+        ann_file=data_root + 'DL_train_grab.json',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
-        img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
         with_mask=True,
-        with_crowd=False,
         with_label=True,
-        use_context=True,
         grabcut=False),
     val=dict(
         type=dataset_type,
         ann_file=data_root + 'DL_val.csv',
         img_prefix=data_root + 'Images_png/',
         img_scale=(512, 512),
-        img_norm_cfg=img_norm_cfg,
         size_divisor=32,
         flip_ratio=0,
-        with_mask=True,
-        with_crowd=True,
-        with_label=True,
-        use_context=True),
+        with_label=True),
     test=dict(
         type=dataset_type,
-        ann_file=data_root + 'DL_test.csv',
+        ann_file=data_root + 'DL_test.json',
         img_prefix=data_root + 'Images_png/',
-        img_scale=(512, 512),
-        img_norm_cfg=img_norm_cfg,
+        img_scale=(512,512),
         size_divisor=32,
         flip_ratio=0,
-        with_mask=False,
         with_label=False,
-        test_mode=True,
-        use_context=True))
+        with_mask=True,
+        test_mode=True))
 # optimizer
-optimizer = dict(type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0001)
+
+# optimizer
+optimizer = dict(type='SGD', lr=0.002, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=35, norm_type=2))
 # learning policy
 lr_config = dict(
@@ -258,10 +253,10 @@ log_config = dict(
     ])
 # yapf:enable
 # runtime settings
-total_epochs = 50
+total_epochs = 12
 dist_params = dict(backend='nccl')
 log_level = 'INFO'
-work_dir = './work_dirs/htc_nograb'
+work_dir = './work_dirs/cascade_gc_next'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]

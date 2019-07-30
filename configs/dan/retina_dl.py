@@ -111,4 +111,4 @@ log_level = 'INFO'
 work_dir = './work_dirs/retina_default'
 load_from = None
 resume_from = None#work_dir+"/latest.pth"
-workflow = [('train', 1)]
+workflow = [('train', 1),('val',2)]
