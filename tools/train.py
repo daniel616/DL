@@ -83,19 +83,28 @@ def main():
     model = build_detector(
         cfg.model, train_cfg=cfg.train_cfg, test_cfg=cfg.test_cfg)
 
-    train_dataset = build_dataset(cfg.data.train)
+
+    all_datasets=[]
+    for idx, val in enumerate(cfg.workflow):
+        x=val[0]
+        if idx==0: assert x=='train'
+        assert x=='train' or x=='val'
+        if x=='train':
+            all_datasets.append(build_dataset(cfg.data.train))
+        else:
+            all_datasets.append(build_dataset(cfg.data.val))
     if cfg.checkpoint_config is not None:
         # save mmdet version, config file content and class names in
         # checkpoints as meta data
         cfg.checkpoint_config.meta = dict(
             mmdet_version=__version__,
             config=cfg.text,
-            CLASSES=train_dataset.CLASSES)
+            CLASSES=all_datasets[0].CLASSES)
     # add an attribute for visualization convenience
-    model.CLASSES = train_dataset.CLASSES
+    model.CLASSES = all_datasets[0].CLASSES
     train_detector(
         model,
-        train_dataset,
+        all_datasets,
         cfg,
         distributed=distributed,
         validate=args.validate,

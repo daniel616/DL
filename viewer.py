@@ -84,16 +84,13 @@ def tonumpy(val):
         return val
 
 if __name__ == "__main__":
-    train=DL_coco(file_locs.csv_dir+"DL_train_toy.csv",file_locs.image_dir,
+    train=DL_coco(file_locs.csv_dir+"DL_train_toy.json",file_locs.image_dir,
                 with_mask=True,use_context=True,test_mode=False)
-    test=DL_coco(file_locs.csv_dir+"DL_train_toy.csv",file_locs.image_dir,
+    test=DL_coco(file_locs.csv_dir+"DL_train_toy.json",file_locs.image_dir,
                 with_mask=True,use_context=True,test_mode=True,grabcut=False)
 
     import pandas as pd
     df= pd.read_csv(file_locs.csv_dir+"DL_test.csv")
 
-    data1=test[0]
-    view_dataset(test)
-
-    data=test[0]
+    data1=train[0]
 

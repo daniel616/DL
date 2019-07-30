@@ -49,7 +49,7 @@ class CustomDataset(Dataset):
                  num_max_proposals=1000,
                  flip_ratio=0,
                  with_mask=True,
-                 with_crowd=True,
+                 with_crowd=False,
                  with_label=True,
                  with_semantic_seg=False,
                  seg_prefix=None,
@@ -216,7 +216,6 @@ class CustomDataset(Dataset):
         if self.extra_aug is not None:
             img, gt_bboxes, gt_labels = self.extra_aug(img, gt_bboxes,
                                                        gt_labels)
-
         # apply transforms
         flip = True if np.random.rand() < self.flip_ratio else False
         # randomly sample a scale
@@ -233,16 +232,10 @@ class CustomDataset(Dataset):
             gt_seg = mmcv.imrescale(
                 gt_seg, self.seg_scale_factor, interpolation='nearest')
             gt_seg = gt_seg[None, ...]
-        if self.proposals is not None:
-            proposals = self.bbox_transform(proposals, img_shape, scale_factor,
-                                            flip)
-            proposals = np.hstack([proposals, scores
-                                   ]) if scores is not None else proposals
+
         gt_bboxes = self.bbox_transform(gt_bboxes, img_shape, scale_factor,
                                         flip)
-        if self.with_crowd:
-            gt_bboxes_ignore = self.bbox_transform(gt_bboxes_ignore, img_shape,
-                                                   scale_factor, flip)
+
         if self.with_mask:
             gt_masks = self.mask_transform(ann['masks'], pad_shape,
                                            scale_factor, flip)

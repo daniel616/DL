@@ -140,6 +140,8 @@ class RandomCrop(object):
 
                 return img, boxes, labels
 
+class Rotate():
+    pass
 
 class ExtraAugmentation(object):
 

@@ -47,7 +47,7 @@ def batch_processor(model, data, train_mode):
 
 
 def train_detector(model,
-                   dataset,
+                   all_datasets,
                    cfg,
                    distributed=False,
                    validate=False,
@@ -57,9 +57,9 @@ def train_detector(model,
 
     # start training
     if distributed:
-        _dist_train(model, dataset, cfg, validate=validate)
+        _dist_train(model, all_datasets, cfg, validate=validate)
     else:
-        _non_dist_train(model, dataset, cfg, validate=validate)
+        _non_dist_train(model, all_datasets, cfg, validate=validate)
 
 
 def build_optimizer(model, optimizer_cfg):
@@ -189,7 +189,7 @@ def _dist_train(model, dataset, cfg, validate=False):
     runner.run(data_loaders, cfg.workflow, cfg.total_epochs)
 
 
-def _non_dist_train(model, dataset, cfg, validate=False):
+def _non_dist_train(model, all_datasets, cfg, validate=False):
     # prepare data loaders
     data_loaders = [
         build_dataloader(
@@ -198,6 +198,7 @@ def _non_dist_train(model, dataset, cfg, validate=False):
             cfg.data.workers_per_gpu,
             cfg.gpus,
             dist=False)
+        for dataset in all_datasets
     ]
     # put model on gpus
     model = MMDataParallel(model, device_ids=range(cfg.gpus)).cuda()
