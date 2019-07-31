@@ -90,7 +90,8 @@ if __name__ == "__main__":
                 with_mask=True,use_context=True,test_mode=True,grabcut=False)
 
     import pandas as pd
-    df= pd.read_csv(file_locs.csv_dir+"DL_test.csv")
+    view_dataset(test)
+    #df= pd.read_csv(file_locs.csv_dir+"DL_test.csv")
 
     data1=train[0]
 

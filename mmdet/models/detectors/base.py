@@ -108,7 +108,8 @@ class BaseDetector(nn.Module):
         else:
             bbox_result, segm_result = result, None
         img_tensor = data['img'][0]
-        img_tensor *= 255
+        if img_tensor.max()<=1 and img_tensor.min()>=0:
+            img_tensor *= 255
         img_metas = data['img_meta'][0].data[0]
         if img_norm_cfg is None:
             num_imgs = img_tensor.size(0)
@@ -241,8 +242,6 @@ def addBox(img,bbox,color,label,class_names=None):
         label_text += '|{:.02f}'.format(bbox[-1])
     cv2.putText(img, label_text, (bbox_int[0], bbox_int[1] - 2),
                 cv2.FONT_HERSHEY_COMPLEX, 0.5, color)
-
-
 
 def to_numpy(tensor):
     return tensor.cpu().detach().numpy()

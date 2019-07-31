@@ -108,6 +108,7 @@ def parse_args():
     parser.add_argument('config', help='test config file path')
     parser.add_argument('checkpoint', help='checkpoint file')
     parser.add_argument('--out', help='output result file',default='heh.pkl')
+    parser.add_argument('--saved_preds', help='saved predictions', default=None)
     parser.add_argument(
         '--json_out',
         help='output result file name without extension',
@@ -132,10 +133,7 @@ def parse_args():
         os.environ['LOCAL_RANK'] = str(args.local_rank)
     return args
 
-
-def main():
-    args = parse_args()
-
+def get_outputs(args):
     assert args.out or args.show or args.json_out, \
         ('Please specify at least one operation (save or show the results) '
          'with the argument "--out" or "--show" or "--json_out"')
@@ -189,6 +187,18 @@ def main():
     else:
         model = MMDistributedDataParallel(model.cuda())
         outputs = multi_gpu_test(model, data_loader, args.tmpdir)
+    return outputs
+
+
+def main():
+    args = parse_args()
+    cfg = mmcv.Config.fromfile(args.config)
+    if args.saved_preds is None:
+        outputs=get_outputs(args)
+    else:
+        outputs=mmcv.load(args.saved_preds)
+
+    dataset = build_dataset(cfg.data.test)
 
     rank, _ = get_dist_info()
     if args.out and rank == 0:

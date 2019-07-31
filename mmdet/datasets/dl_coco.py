@@ -14,6 +14,8 @@ from file_locs import image_dir
 
 from .registry import DATASETS
 
+import torchvision.transforms.functional as TF
+
 @DATASETS.register_module
 class DL_coco(CocoDataset):
     CLASSES = ('abnormal')
@@ -40,6 +42,7 @@ class DL_coco(CocoDataset):
                                       **kwargs)
         assert self.proposals is None, "Not implmented"
         assert with_crowd== False, "Not implmented"
+        assert self.with_seg== False, "Not implemented"
 
     def __getitem__(self, idx):
         if self.test_mode:
@@ -74,15 +77,6 @@ class DL_coco(CocoDataset):
         img, img_shape, pad_shape, scale_factor = self.img_transform(
             img, img_scale, flip, keep_ratio=self.resize_keep_ratio)
         img = img.copy()
-        if self.with_seg:
-            gt_seg = mmcv.imread(
-                osp.join(self.seg_prefix, img_info['file_name'].replace(
-                    'jpg', 'png')),
-                flag='unchanged')
-            gt_seg = self.seg_transform(gt_seg.squeeze(), img_scale, flip)
-            gt_seg = mmcv.imrescale(
-                gt_seg, self.seg_scale_factor, interpolation='nearest')
-            gt_seg = gt_seg[None, ...]
 
         gt_bboxes = self.bbox_transform(gt_bboxes, img_shape, scale_factor,
                                         flip)
@@ -102,12 +96,12 @@ class DL_coco(CocoDataset):
             gt_bboxes=DC(to_tensor(gt_bboxes)))
         if self.with_label:
             data['gt_labels'] = DC(to_tensor(gt_labels))
+
         if self.with_mask:
-            gt_masks = self.mask_transform(ann['masks'], pad_shape,
-                                           scale_factor, False)
+            gt_masks = self.mask_transform(ann['masks'], pad_shape, scale_factor, False)
             data['gt_masks'] = DC(gt_masks, cpu_only=True)
 
-        import pdb; pdb.set_trace()
+        #img,box,gt_bboxes,gt_masks=d_transform(img,gt_bboxes,gt_masks)
         return data
 
 
@@ -149,6 +143,8 @@ class DL_coco(CocoDataset):
             gt_masks=ann['masks']
             data['gt_masks'] = DC(gt_masks, cpu_only=True)
 
+        data['file_name'] = DC(self.img_infos[idx]['file_name'])
+
         return data
 
     def get_img(self,idx):
@@ -181,6 +177,23 @@ class DL_coco(CocoDataset):
 
         return proposals,scores
 
+
+#input: PIL images for img, gt_boxes,gt_masks
+def pil_rotate(img,gt_bbox,gt_masks,angle=None):
+    angle=5
+    r_img= TF.rotate(img,angle)
+    r_masks=TF.rotate(gt_masks,angle)
+    r_box=TF.rotate(gt_bbox)
+    r_box=np.array(r_box)
+    pts=np.where(r_box==1)
+
+
+    return r_img,r_masks
+
+def d_transform(img,gt_bboxes,gt_masks):
+    img=TF.to_pil_image(img)
+    #gt_bboxes=TF.to_pil_image()
+    pil_rotate(img,gt_bboxes,gt_masks)
 
 
 def _conv(x):
