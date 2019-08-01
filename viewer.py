@@ -8,7 +8,7 @@ from mmdet.models import build_detector
 from mmcv.parallel import MMDataParallel
 import matplotlib.pyplot as plt
 
-def view_dataset(gen,max_imgs=150):
+def view_dataset_test(gen,max_imgs=150):
     max_imgs=min(max_imgs,len(gen))
     for i in range(max_imgs):
         data=gen[i]
@@ -23,6 +23,26 @@ def view_dataset(gen,max_imgs=150):
         view_image(img,gt_bboxes,
                    "markings/"+str(i)+".png",
                    text=data['file_name'].data,
+                   gt_masks=gt_masks)
+
+def view_dataset_train(gen,max_imgs=150):
+    max_imgs=min(max_imgs,len(gen))
+    for i in range(max_imgs):
+
+        data=gen[i]
+        img=data['img'].data
+        img=tonumpy(img)
+
+        gt_bboxes=data['gt_bboxes'].data
+        gt_bboxes=tonumpy(gt_bboxes)
+
+        gt_masks=None
+        if 'gt_masks' in data:
+            gt_masks=data['gt_masks'].data
+            gt_masks=tonumpy(gt_masks)
+        view_image(img,gt_bboxes,
+                   "markings/"+str(i)+".png",
+                   text=None,
                    gt_masks=gt_masks)
 
 def view_image(img,gt_bboxes,out_file, dt_bboxes=None,gt_masks=None,text=None):
@@ -85,13 +105,15 @@ def tonumpy(val):
 
 if __name__ == "__main__":
     train=DL_coco(file_locs.csv_dir+"DL_train_toy.json",file_locs.image_dir,
-                with_mask=True,use_context=True,test_mode=False)
+                with_mask=True,use_context=True,test_mode=False,will_batch=False)
     test=DL_coco(file_locs.csv_dir+"DL_train_toy.json",file_locs.image_dir,
-                with_mask=True,use_context=True,test_mode=True,grabcut=False)
+                with_mask=True,use_context=True,test_mode=True,will_batch=False)
 
     import pandas as pd
-    view_dataset(test)
+    data=test[0]
+    view_dataset_train(train)
     #df= pd.read_csv(file_locs.csv_dir+"DL_test.csv")
+    #data=test[0]
 
-    data1=train[0]
+    #data1=train[0]
 
