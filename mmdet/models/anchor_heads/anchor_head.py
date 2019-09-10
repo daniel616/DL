@@ -34,7 +34,7 @@ class AnchorHead(nn.Module):
                  feat_channels=256,
                  anchor_scales=[8, 16, 32],
                  anchor_ratios=[0.5, 1.0, 2.0],
-                 anchor_strides=[4,8,16,32,64],
+                 anchor_strides=(4,8,16,32,64),
                  anchor_base_sizes=None,
                  target_means=(.0, .0, .0, .0),
                  target_stds=(1.0, 1.0, 1.0, 1.0),
@@ -43,7 +43,8 @@ class AnchorHead(nn.Module):
                      use_sigmoid=True,
                      loss_weight=1.0),
                  loss_bbox=dict(
-                     type='SmoothL1Loss', beta=1.0 / 9.0, loss_weight=1.0)):
+                     type='SmoothL1Loss', beta=1.0 / 9.0, loss_weight=1.0
+                 )):
         super(AnchorHead, self).__init__()
         self.in_channels = in_channels
         self.num_classes = num_classes

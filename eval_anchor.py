@@ -13,7 +13,7 @@ import time
 import copy
 
 def get_req():
-    data=DL_coco(file_locs.csv_dir + "DL_valid.csv", file_locs.image_dir,
+    data=DL_coco(file_locs.csv_dir + "DL_valid.json", file_locs.image_dir,
                  with_mask=True, use_context=True, test_mode=True)
 
     model_ = build_detector(cfg.model, train_cfg = cfg.train_cfg, test_cfg = cfg.test_cfg)
@@ -151,11 +151,12 @@ def summarize(gt_boxes):
 
 
 if __name__ == "__main__":
-
+    '''
     de(de_func,[[0,1],[0,1],[1,2],[1,4],[1,5]],
        its=500, initializers=[
             ((0.5,0.5,1.5),(3,2))
         ])
+        '''
     #print(list(it))
     print(eval_anchor_cfg([],[]))
     #summarize(boxes)

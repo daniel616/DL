@@ -22,9 +22,10 @@ model = dict(
         in_channels=256,
         stacked_convs=4,
         feat_channels=256,
-        anchor_scales=[4*0.425,4*0.54,4*0.68],
+        anchor_scales=[0.425,0.54,0.68],
         anchor_ratios=[3.27,1.78, 1.0, 1.0/3.27,1/1.78],
         #=512/featmap_size
+        anchor_base_sizes=[32,64,128,256,512],
         anchor_strides=[8, 16, 32, 64, 128],
         target_means=[.0, .0, .0, .0],
         target_stds=[1.0, 1.0, 1.0, 1.0],
@@ -49,7 +50,7 @@ train_cfg = dict(
 test_cfg = dict(
     nms_pre=1000,
     min_bbox_size=0,
-    score_thr=0.05,
+    score_thr=0.01,
     nms=dict(type='nms', iou_thr=0.5),
     max_per_img=100)
 # dataset settings

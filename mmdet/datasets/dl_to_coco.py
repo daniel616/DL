@@ -36,6 +36,7 @@ def to_coco(csv,out_file,use_grabcut=False):
         directory=x['file_name'].split("/")[0]
         ctx1=osp.join(directory,adjacents[0])
         ctx2=osp.join(directory,adjacents[1])
+        w_min,w_max=map(int, x['DICOM_windows'].split(", "))
 
         img_info={
             'file_name':x['file_name'],
@@ -43,7 +44,9 @@ def to_coco(csv,out_file,use_grabcut=False):
             'ctx2':ctx2,
             'height':512,
             'width':512,
-            'id':x['id']
+            'id':x['id'],
+            'w_min':w_min,
+            'w_max':w_max
         }
 
         b=[ int(float(t)) for t in x['Bounding_boxes'].split(", ")]
@@ -138,7 +141,7 @@ def grabseg(img,bbox,pts):
     assert isinstance(pts,np.ndarray)
     cv2.rectangle(mask,(bbox[0],bbox[1]),(bbox[2],bbox[3]),cv2.GC_PR_BGD,
                   thickness=-1)
-    cv2.fillPoly(mask,pts,cv2.GC_FGD)
+    cv2.fillPoly(mask,pts,cv2.GC_PR_FGD)
     assert len(mask.shape)==2
 
     bgdModel = np.zeros((1, 65), np.float64)
@@ -185,6 +188,11 @@ if __name__=="__main__":
     to_coco(csv_dir+"DL_train.csv",csv_dir+"DL_train_grab.json",use_grabcut=True)
     to_coco(csv_dir+"DL_test.csv",csv_dir+"DL_test_grab.json",use_grabcut=True)
     to_coco(csv_dir+"DL_valid.csv",csv_dir+"DL_valid_grab.json",use_grabcut=True)
+
+    to_coco(csv_dir+"DL_train_toy.csv",csv_dir+"DL_train_toy.json",use_grabcut=True)
+    to_coco(csv_dir+"DL_test_toy.csv",csv_dir+"DL_test_toy.json",use_grabcut=True)
+    to_coco(csv_dir+"DL_valid_toy.csv",csv_dir+"DL_valid_toy.json",use_grabcut=True)
+
     #to_coco(csv_dir+"DL_test.csv","DL_test_grab.json",use_grabcut=True)
     #to_coco(csv_dir+"DL_valid.csv","DL_valid_grab.json",use_grabcut=True)
 

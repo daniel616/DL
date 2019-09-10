@@ -11,9 +11,10 @@ from .retinanet import RetinaNet
 from .fcos import FCOS
 from .grid_rcnn import GridRCNN
 from .mask_scoring_rcnn import MaskScoringRCNN
+from .ctx_retina import CTX_Retina
 
 __all__ = [
     'BaseDetector', 'SingleStageDetector', 'TwoStageDetector', 'RPN',
     'FastRCNN', 'FasterRCNN', 'MaskRCNN', 'CascadeRCNN', 'HybridTaskCascade',
-    'RetinaNet', 'FCOS', 'GridRCNN', 'MaskScoringRCNN'
+    'RetinaNet', 'FCOS', 'GridRCNN', 'MaskScoringRCNN','CTX_Retina'
 ]

@@ -33,11 +33,15 @@ class DL_coco(CocoDataset):
                  with_crowd=False,
                  use_context=False,
                  will_batch=True,
+                 spec_window=False,
+                 w_range=(-175,275),
                  **kwargs):
         ftype = ann_file.split(".")[-1]
         assert ftype == 'json'
+        self.spec_window=spec_window
         self.use_context=use_context
         self.will_batch=will_batch
+        self.w_range=w_range
         super(DL_coco, self).__init__(ann_file,img_prefix,img_scale,img_norm_cfg,
                                       with_mask=with_mask,with_crowd=with_crowd,
                                       **kwargs)
@@ -151,15 +155,19 @@ class DL_coco(CocoDataset):
             data['file_name'] = DC(self.img_infos[idx]['file_name'])
         return data
 
-    def get_img(self,idx):
+    def get_img(self, idx):
         img_info = self.img_infos[idx]
         readim=lambda x:io.imread(osp.join(image_dir,x)).astype('int32')-32768
         img=readim(img_info['file_name'])
         if self.use_context:
             ctx1,ctx2=readim(img_info['ctx1']),readim(img_info['ctx2'])
             img=np.stack([img,ctx1,ctx2],axis=-1)
-        import pdb; pdb.set_trace()
-        img= DICOM_window(img)
+
+        if self.spec_window:
+            w_min,w_max=img_info['w_min'],img_info['w_max']
+            img=DICOM_window(img,w_min,w_max)
+        else:
+            img= DICOM_window(img,self.w_range[0],self.w_range[1])
         return img
 '''
     def _proposals_scores(self,idx):
